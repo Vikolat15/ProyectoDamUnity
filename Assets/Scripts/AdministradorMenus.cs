@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class AdministradorMenus : MonoBehaviour
 {
@@ -9,13 +8,31 @@ public class AdministradorMenus : MonoBehaviour
     public GameObject panelSeleccionNiveles;
     public GameObject panelCreditos;
 
+    [Header("Audio")]
+    public AudioSource audioSource;   // Para el sonido de los botones
+    public AudioClip sonidoClick;
+
+    public AudioSource musicaMenu;    // Música del menú
+
     void Start()
     {
         MostrarMenuPrincipal();
+
+        // Reproducir música del menú
+        if (musicaMenu != null)
+        {
+            musicaMenu.loop = true;
+            musicaMenu.Play();
+        }
     }
 
-    // Menu principal
-    
+    void ReproducirClick()
+    {
+        if (audioSource != null && sonidoClick != null)
+            audioSource.PlayOneShot(sonidoClick);
+    }
+
+    // ---------- MENÚ PRINCIPAL ----------
     public void MostrarMenuPrincipal()
     {
         panelMenuPrincipal.SetActive(true);
@@ -25,62 +42,68 @@ public class AdministradorMenus : MonoBehaviour
 
     public void AlPresionarJugar()
     {
+        ReproducirClick();
         panelMenuPrincipal.SetActive(false);
         panelSeleccionNiveles.SetActive(true);
     }
 
     public void AlPresionarCreditos()
     {
+        ReproducirClick();
         panelMenuPrincipal.SetActive(false);
         panelCreditos.SetActive(true);
     }
 
     public void AlPresionarSalir()
     {
-        Debug.Log("Saliendo del juego...");
-        
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
+        ReproducirClick();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
-    //Seleccionar nivel    
+    // ---------- SELECCIÓN DE NIVELES ----------
     public void AlPresionarVolverNiveles()
     {
+        ReproducirClick();
         MostrarMenuPrincipal();
     }
 
-    //cargar cada nivel
     public void CargarTutorial()
     {
+        ReproducirClick();
         SceneManager.LoadScene("Tutorial");
     }
 
     public void CargarNivel1()
     {
+        ReproducirClick();
         SceneManager.LoadScene("Nivel1");
     }
 
     public void CargarNivel2()
     {
+        ReproducirClick();
         SceneManager.LoadScene("Nivel2");
     }
 
     public void CargarNivel3()
     {
+        ReproducirClick();
         SceneManager.LoadScene("Nivel3");
     }
 
     public void CargarNivel4()
     {
+        ReproducirClick();
         SceneManager.LoadScene("Nivel4");
     }
 
-    
     public void AlPresionarVolverCreditos()
     {
+        ReproducirClick();
         MostrarMenuPrincipal();
     }
 }
