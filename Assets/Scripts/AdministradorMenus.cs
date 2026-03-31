@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
-
+// prueba git 
 public class AdministradorMenus : MonoBehaviour
 {
     public GameObject panelMenuPrincipal;
