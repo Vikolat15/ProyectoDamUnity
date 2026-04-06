@@ -156,7 +156,7 @@ BoxCollider2D:
   m_GameObject: {fileID: 5660360676338591234}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: e39447b65c2e34041898529dc4d92318, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -234,10 +234,12 @@ MonoBehaviour:
   Velocidad: 6
   Salto: 16
   tamannoBox: {x: 1, y: 1}
-  distanciaBox: 1
+  distanciaBox: 0.0001
   capaSuelo:
     serializedVersion: 2
     m_Bits: 64
   Habilidad: 0
   puntuacionMaxima: 0
   tiempoInvulnerable: 1
+  coyoteTime: 0.1
+  jumpBufferTime: 0.1

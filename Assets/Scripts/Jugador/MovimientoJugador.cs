@@ -16,7 +16,7 @@ public class Movimientojugador : Entidad
     private float Horizontal;
     private Animator Animator;
     public Vector2 tamannoBox;
-    public float distanciaBox;
+    public float distanciaBox = 0.001f;
     public LayerMask capaSuelo;
     public int Habilidad;
     public int puntuacionMaxima = 0;
@@ -25,6 +25,10 @@ public class Movimientojugador : Entidad
     private float tiempoSinDisparar = 0.7f;
     private float SiguienteDisparoPosible = 0f;
     private int vidaDB;
+    public float coyoteTime = 0.1f;
+    private float coyoteTimeCounter;
+    public float jumpBufferTime = 0.1f;
+    private float jumpBufferCounter;
 
     public override int VidaMaxima {
         get { return vidaDB; } 
@@ -44,22 +48,42 @@ public class Movimientojugador : Entidad
     void Update()
     {
         Horizontal = Input.GetAxisRaw("Horizontal");
-
         Animator.SetBool("running", Horizontal != 0.0f);
-    
-        if (Input.GetKeyDown(KeyCode.Space) && tocaSuelo() && !existeMenu){
-            Jump();
+
+        if (Horizontal > 0.0f) {
+            transform.localScale = new Vector3(-1.0f, 1.0f, 1.0f);
+        } else if (Horizontal < 0.0f) {
+            transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         }
 
-        if (Horizontal > 0.0f){
-            transform.localScale = new Vector3(-1.0f, 1.0f , 1.0f);
-        } else if (Horizontal < 0.0f){
-            transform.localScale = new Vector3(1.0f, 1.0f , 1.0f);
+        bool enSuelo = tocaSuelo();
+
+        if (enSuelo) {
+            coyoteTimeCounter = coyoteTime; 
+        } else {
+            coyoteTimeCounter -= Time.deltaTime;
         }
 
-        if (Input.GetMouseButtonDown(0) && !existeMenu){
-            if (Time.time >= SiguienteDisparoPosible)
-            {
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            jumpBufferCounter = jumpBufferTime;
+        } else {
+            jumpBufferCounter -= Time.deltaTime;
+        }
+
+        if (jumpBufferCounter > 0f && !existeMenu) {
+            if (enSuelo || coyoteTimeCounter > 0f) {
+                Jump();
+            }
+        }
+
+        if (Input.GetKeyUp(KeyCode.Space) && Rigidbody2D.velocity.y > 0) {
+            Rigidbody2D.velocity = new Vector2(Rigidbody2D.velocity.x, Rigidbody2D.velocity.y * 0.5f);
+            coyoteTimeCounter = 0f;
+            jumpBufferCounter = 0f;
+        }
+
+        if (Input.GetMouseButtonDown(0) && !existeMenu) {
+            if (Time.time >= SiguienteDisparoPosible) {
                 SiguienteDisparoPosible = Time.time + tiempoSinDisparar;
                 Shoot();
             }
@@ -67,9 +91,9 @@ public class Movimientojugador : Entidad
 
         if (Habilidad == 0) {
             Animator.runtimeAnimatorController = animacionBase;
-        } else if (Habilidad == 1){
+        } else if (Habilidad == 1) {
             Animator.runtimeAnimatorController = animacionFuego;
-        } else if (Habilidad == 2){
+        } else if (Habilidad == 2) {
             Animator.runtimeAnimatorController = animacionHielo;
         }
     }
@@ -79,7 +103,11 @@ public class Movimientojugador : Entidad
     }
 
     void Jump(){
+        Rigidbody2D.velocity = new Vector2(Rigidbody2D.velocity.x, 0f);
         Rigidbody2D.AddForce(Vector2.up * Salto, ForceMode2D.Impulse);
+
+        jumpBufferCounter = 0f;
+        coyoteTimeCounter = 0f;
     }
 
     public void Shoot()
