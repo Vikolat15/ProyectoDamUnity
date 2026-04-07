@@ -71,6 +71,15 @@ public class DatabaseManager : MonoBehaviour
                 );";
                 command.ExecuteNonQuery();
 
+                // --- NUEVA TABLA: progreso de niveles desbloqueados ---
+                // nivelId: 0=Tutorial, 1=Nivel1, 2=Nivel2, 3=Nivel3
+                // completado: 1 si el jugador ya lo ha superado
+                command.CommandText = @"CREATE TABLE IF NOT EXISTS ProgresoNivel (
+                    nivelId INTEGER PRIMARY KEY,
+                    completado INTEGER NOT NULL DEFAULT 0
+                );";
+                command.ExecuteNonQuery();
+
                 Debug.Log("Tablas insertadas");
             }
         }
@@ -110,6 +119,21 @@ public class DatabaseManager : MonoBehaviour
                         command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 45);";
                         command.ExecuteNonQuery();
 
+                        // --- Inicializar progreso: Tutorial siempre disponible (completado=0),
+                        //     el resto bloqueados hasta que se complete el anterior ---
+                        // nivelId 0 = Tutorial  (siempre desbloqueado, empieza sin completar)
+                        // nivelId 1 = Nivel 1   (bloqueado hasta completar Tutorial)
+                        // nivelId 2 = Nivel 2   (bloqueado hasta completar Nivel 1)
+                        // nivelId 3 = Nivel 3   (bloqueado hasta completar Nivel 2)
+                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (0, 0);";
+                        command.ExecuteNonQuery();
+                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (1, 0);";
+                        command.ExecuteNonQuery();
+                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (2, 0);";
+                        command.ExecuteNonQuery();
+                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (3, 0);";
+                        command.ExecuteNonQuery();
+
                         transaction.Commit();
                         Debug.Log("Datos añadidos");
                     }
@@ -122,6 +146,62 @@ public class DatabaseManager : MonoBehaviour
             }
         }
     }
+
+    // ---------------------------------------------------------------
+    //  PROGRESO DE NIVELES
+    // ---------------------------------------------------------------
+
+    /// <summary>
+    /// Devuelve true si el nivel con el id dado está desbloqueado.
+    /// El Tutorial (nivelId=0) siempre está desbloqueado.
+    /// El resto se desbloquean cuando el nivel anterior está completado.
+    /// </summary>
+    public bool IsNivelDesbloqueado(int nivelId)
+    {
+        if (nivelId == 0) return true; // Tutorial siempre accesible
+
+        // Comprueba si el nivel anterior está completado
+        int nivelAnterior = nivelId - 1;
+        return GetNivelCompletado(nivelAnterior);
+    }
+
+    /// <summary>
+    /// Devuelve true si el nivel indicado ya fue completado.
+    /// </summary>
+    public bool GetNivelCompletado(int nivelId)
+    {
+        using (var connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT completado FROM ProgresoNivel WHERE nivelId = {nivelId};";
+                object result = command.ExecuteScalar();
+                return result != null && System.Convert.ToInt32(result) == 1;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Marca el nivel indicado como completado en la base de datos.
+    /// </summary>
+    public void MarcarNivelCompletado(int nivelId)
+    {
+        using (var connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"UPDATE ProgresoNivel SET completado = 1 WHERE nivelId = {nivelId};";
+                command.ExecuteNonQuery();
+                Debug.Log($"Nivel {nivelId} marcado como completado.");
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    //  MÉTODOS EXISTENTES (sin cambios)
+    // ---------------------------------------------------------------
 
     public int GetSaludPersonaje(int id, int idNivel)
     {
@@ -187,9 +267,7 @@ public class DatabaseManager : MonoBehaviour
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = $"SELECT puntuacionMaxima FROM Nivel WHERE id = {id} AND idjuego = {idJuego};";
-                
                 object result = command.ExecuteScalar();
-                
                 return result != null ? System.Convert.ToInt32(result) : 0;
             }
         }
@@ -205,7 +283,6 @@ public class DatabaseManager : MonoBehaviour
                 command.CommandText = $@"
                     INSERT OR REPLACE INTO Nivel (id, idjuego, nombre, puntuacionMaxima) 
                     VALUES ({id}, {idJuego}, '{nombre}', {puntos});";
-                
                 command.ExecuteNonQuery();
             }
         }

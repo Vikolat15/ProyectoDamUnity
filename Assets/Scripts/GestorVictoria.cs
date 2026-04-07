@@ -5,19 +5,26 @@ public class GestorVictoria : MonoBehaviour
 {
     public GameObject pantallaVictoria;
     public TextMeshProUGUI textoTiempo;
-    
     public TextMeshProUGUI textoPuntuacion;
-    private float tiempoTranscurrido = 0f; 
 
+    // ---------------------------------------------------------------
+    // IMPORTANTE: Asigna en el Inspector el nivelId de esta escena:
+    //   Tutorial = 0 | Nivel1 = 1 | Nivel2 = 2 | Nivel3 = 3
+    // ---------------------------------------------------------------
+    [Header("Progreso de niveles")]
+    [Tooltip("0=Tutorial  1=Nivel1  2=Nivel2  3=Nivel3")]
+    public int nivelActualId = 0;
+
+    private float tiempoTranscurrido = 0f;
     private int puntuacion = 0;
     private bool juegoTerminado = false;
-    
+
     void Start()
-    {        
+    {
         pantallaVictoria.SetActive(false);
         ResetearTiempo();
     }
-    
+
     void Update()
     {
         if (!juegoTerminado)
@@ -25,45 +32,91 @@ public class GestorVictoria : MonoBehaviour
             tiempoTranscurrido += Time.deltaTime;
         }
     }
-    
+
     public void ResetearTiempo()
     {
-        tiempoTranscurrido = 0f; 
+        tiempoTranscurrido = 0f;
         juegoTerminado = false;
         Time.timeScale = 1f;
     }
-    
+
     public void MostrarPantallaVictoria()
     {
         if (juegoTerminado) return;
         juegoTerminado = true;
-        
-        int minutos = (int)(tiempoTranscurrido / 60);
+
+        int minutos  = (int)(tiempoTranscurrido / 60);
         int segundos = (int)(tiempoTranscurrido % 60);
-        
+
         textoTiempo.text = $"Tiempo: {minutos:00}:{segundos:00}";
         recibirPuntuacion();
         textoPuntuacion.text = "Puntuacion: " + puntuacion.ToString();
 
         pantallaVictoria.SetActive(true);
 
-        insertarPunutuacion(0,0,"Tutorial",puntuacion);
-        
+        // Guardar puntuación (lógica original)
+        insertarPunutuacion(0, 0, ObtenerNombreNivel(), puntuacion);
+
+        // --- NUEVO: marcar este nivel como completado y desbloquear el siguiente ---
+        MarcarProgresoNivel();
+
         Time.timeScale = 0f;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
 
+    // ---------------------------------------------------------------
+    //  PROGRESO
+    // ---------------------------------------------------------------
+
+    /// <summary>
+    /// Busca el DatabaseManager y marca el nivel actual como completado.
+    /// </summary>
+    private void MarcarProgresoNivel()
+    {
+        GameObject adminObj = GameObject.FindWithTag("Admin");
+        if (adminObj != null && adminObj.TryGetComponent<DatabaseManager>(out DatabaseManager db))
+        {
+            db.MarcarNivelCompletado(nivelActualId);
+            Debug.Log($"Nivel {nivelActualId} ({ObtenerNombreNivel()}) completado. El siguiente nivel ya está disponible.");
+        }
+        else
+        {
+            Debug.LogError("GestorVictoria: No se encontró el objeto con Tag 'Admin' o el componente DatabaseManager.");
+        }
+    }
+
+    /// <summary>
+    /// Devuelve el nombre legible del nivel actual según nivelActualId.
+    /// </summary>
+    private string ObtenerNombreNivel()
+    {
+        switch (nivelActualId)
+        {
+            case 0:  return "Tutorial";
+            case 1:  return "Nivel1";
+            case 2:  return "Nivel2";
+            case 3:  return "Nivel3";
+            default: return "Nivel" + nivelActualId;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    //  MÉTODOS EXISTENTES (sin cambios)
+    // ---------------------------------------------------------------
+
     public void recibirPuntuacion()
     {
         GameObject objetoEncontrado = GameObject.FindWithTag("Canvas");
-    
-        if (objetoEncontrado != null) 
+
+        if (objetoEncontrado != null)
         {
-            if (objetoEncontrado.TryGetComponent<Puntuacion>(out Puntuacion script)) {
+            if (objetoEncontrado.TryGetComponent<Puntuacion>(out Puntuacion script))
+            {
                 puntuacion = script.GetPuntuacionNivel();
             }
-        } else
+        }
+        else
         {
             Debug.LogError("Canvas no encontrado");
         }
@@ -73,14 +126,14 @@ public class GestorVictoria : MonoBehaviour
     {
         GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
 
-        if (objetoEncontrado != null) 
+        if (objetoEncontrado != null)
         {
-            if (objetoEncontrado.TryGetComponent<DatabaseManager>(out DatabaseManager script)) 
+            if (objetoEncontrado.TryGetComponent<DatabaseManager>(out DatabaseManager script))
             {
                 script.insertarPunutuacionMaxima(id, idJuego, nombre, puntos);
             }
         }
-        else 
+        else
         {
             Debug.LogError("Admin no encontrado");
         }
