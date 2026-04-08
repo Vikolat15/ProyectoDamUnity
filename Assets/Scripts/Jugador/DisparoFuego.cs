@@ -4,11 +4,8 @@ using UnityEngine;
 
 public class BalaFuego : MonoBehaviour
 {
-    [Header("Configuración")]
     public float velocidadBala;
     private int dano;
-
-    [Header("Componentes")]
     private Rigidbody2D Rigidbody2D;
     private Vector2 Direccion;
     private Collider2D Collider;

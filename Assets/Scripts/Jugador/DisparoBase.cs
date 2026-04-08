@@ -5,12 +5,13 @@ using UnityEngine;
 public class BalaBase : MonoBehaviour
 {
     public float velocidadBala;
+    private int dano;
     private Rigidbody2D Rigidbody2D;
     private Vector2 Direccion;
     private Animator Animator;
     private Collider2D Collider;
 
-    private int dano;
+
 
     void Start()
     {
@@ -51,22 +52,6 @@ public class BalaBase : MonoBehaviour
             enemyComponent3.recibirDano(dano);
         }
         Destroy(gameObject);
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.TryGetComponent<PatoMovimiento>(out PatoMovimiento enemyComponent4))
-        {
-            enemyComponent4.recibirDano(dano);
-        }
-        if (collision.gameObject.TryGetComponent<setaMovimiento>(out setaMovimiento enemyComponent5))
-        {
-            enemyComponent5.recibirDano(dano);
-        }
-        if (collision.gameObject.TryGetComponent<GallinaMovimiento>(out GallinaMovimiento enemyComponent6))
-        {
-            enemyComponent6.recibirDano(dano);
-        }
     }
 
     public void ConsultarBala(int id, int idNivel)
