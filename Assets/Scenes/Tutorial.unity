@@ -2365,11 +2365,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5176161261395019726, guid: 21cf50ccfb7c05247aaed0e11858f4b1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -7.75
+      value: -8.31
       objectReference: {fileID: 0}
     - target: {fileID: 5176161261395019726, guid: 21cf50ccfb7c05247aaed0e11858f4b1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.92
+      value: -0.17
       objectReference: {fileID: 0}
     - target: {fileID: 5176161261395019726, guid: 21cf50ccfb7c05247aaed0e11858f4b1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2417,7 +2417,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5738746160758619619, guid: 21cf50ccfb7c05247aaed0e11858f4b1, type: 3}
       propertyPath: distanciaBox
-      value: 1
+      value: 0.0001
       objectReference: {fileID: 0}
     - target: {fileID: 5738746160758619619, guid: 21cf50ccfb7c05247aaed0e11858f4b1, type: 3}
       propertyPath: tamannoBox.x
@@ -2474,11 +2474,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1667145906499477909, guid: 2db38271fad78ed4ea528662cd63cf9c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 28.78
+      value: 24.98
       objectReference: {fileID: 0}
     - target: {fileID: 1667145906499477909, guid: 2db38271fad78ed4ea528662cd63cf9c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.31
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1667145906499477909, guid: 2db38271fad78ed4ea528662cd63cf9c, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3400,7 +3400,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1667145906499477909, guid: 2db38271fad78ed4ea528662cd63cf9c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.33
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1667145906499477909, guid: 2db38271fad78ed4ea528662cd63cf9c, type: 3}
       propertyPath: m_LocalPosition.z
@@ -24212,6 +24212,14 @@ PrefabInstance:
     - target: {fileID: 2733677588578978942, guid: cf3a29b98dcc2d342a75b53e13a888ad, type: 3}
       propertyPath: m_Offset.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4304168543235118565, guid: cf3a29b98dcc2d342a75b53e13a888ad, type: 3}
+      propertyPath: m_Mass
+      value: 999
+      objectReference: {fileID: 0}
+    - target: {fileID: 4304168543235118565, guid: cf3a29b98dcc2d342a75b53e13a888ad, type: 3}
+      propertyPath: m_BodyType
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6282696709734946357, guid: cf3a29b98dcc2d342a75b53e13a888ad, type: 3}
       propertyPath: m_Name
