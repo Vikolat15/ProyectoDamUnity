@@ -74,15 +74,21 @@ public class GestorVictoria : MonoBehaviour
     /// </summary>
     private void MarcarProgresoNivel()
     {
-        GameObject adminObj = GameObject.FindWithTag("Admin");
-        if (adminObj != null && adminObj.TryGetComponent<DatabaseManager>(out DatabaseManager db))
+        DatabaseManager db = DatabaseManager.Instance;
+        if (db == null)
+        {
+            GameObject adminObj = GameObject.FindWithTag("Admin");
+            if (adminObj != null) adminObj.TryGetComponent(out db);
+        }
+
+        if (db != null)
         {
             db.MarcarNivelCompletado(nivelActualId);
-            Debug.Log($"Nivel {nivelActualId} ({ObtenerNombreNivel()}) completado. El siguiente nivel ya está disponible.");
+            Debug.Log($"Nivel {nivelActualId} ({ObtenerNombreNivel()}) completado.");
         }
         else
         {
-            Debug.LogError("GestorVictoria: No se encontró el objeto con Tag 'Admin' o el componente DatabaseManager.");
+            Debug.LogError("GestorVictoria: No se encontró DatabaseManager.");
         }
     }
 
@@ -124,18 +130,16 @@ public class GestorVictoria : MonoBehaviour
 
     public void insertarPunutuacion(int id, int idJuego, string nombre, int puntos)
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
+        DatabaseManager script = DatabaseManager.Instance;
+        if (script == null)
+        {
+            GameObject obj = GameObject.FindWithTag("Admin");
+            if (obj != null) obj.TryGetComponent(out script);
+        }
 
-        if (objetoEncontrado != null)
-        {
-            if (objetoEncontrado.TryGetComponent<DatabaseManager>(out DatabaseManager script))
-            {
-                script.insertarPunutuacionMaxima(id, idJuego, nombre, puntos);
-            }
-        }
+        if (script != null)
+            script.insertarPunutuacionMaxima(id, idJuego, nombre, puntos);
         else
-        {
-            Debug.LogError("Admin no encontrado");
-        }
+            Debug.LogError("GestorVictoria: Admin no encontrado al insertar puntuación.");
     }
 }

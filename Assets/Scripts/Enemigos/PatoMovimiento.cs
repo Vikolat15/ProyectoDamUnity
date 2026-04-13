@@ -110,20 +110,25 @@ public class PatoMovimiento : Entidad
 
     public void ConsultarEnemigo(int id, int idNivel)
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
+        DatabaseManager script = DatabaseManager.Instance;
+        if (script == null)
+        {
+            GameObject obj = GameObject.FindWithTag("Admin");
+            if (obj != null) obj.TryGetComponent(out script);
+        }
 
-        if (objetoEncontrado != null) 
+        if (script != null)
         {
-            if (objetoEncontrado.TryGetComponent<DatabaseManager>(out DatabaseManager script)) 
-            {
-                vidaDB = script.GetSaludEnemigo(id, idNivel);
-                danoDB = script.GetDanoEnemigo(id, idNivel);
-                
-            }
-        } 
-        else 
+            vidaDB = script.GetSaludEnemigo(id, idNivel);
+            danoDB = script.GetDanoEnemigo(id, idNivel);
+            if (vidaDB <= 0) vidaDB = 300;
+            if (danoDB <= 0) danoDB = 50;
+        }
+        else
         {
-            Debug.LogError("Admin no encontrado");
+            Debug.LogWarning("PatoMovimiento: Admin no encontrado. Usando valores por defecto.");
+            vidaDB = 300;
+            danoDB = 50;
         }
     }
 

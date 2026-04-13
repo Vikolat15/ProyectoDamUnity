@@ -222,22 +222,34 @@ public class Movimientojugador : Entidad
 
     public void ConsultarPersonage(int id, int idNivel)
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
-
-        if (objetoEncontrado != null) 
+        // Primero intenta por singleton, luego por tag
+        DatabaseManager script = DatabaseManager.Instance;
+        if (script == null)
         {
-            if (objetoEncontrado.TryGetComponent<DatabaseManager>(out DatabaseManager script)) 
-            {
-                vidaDB = script.GetSaludPersonaje(id, idNivel);
-            }
+            GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
+            if (objetoEncontrado != null)
+                objetoEncontrado.TryGetComponent<DatabaseManager>(out script);
         }
-        else 
+
+        if (script != null)
         {
-            Debug.LogError("Admin no encontrado");
+            vidaDB = script.GetSaludPersonaje(id, idNivel);
+            // Si la BD devuelve 0 (dato no insertado aún), usar valor por defecto
+            if (vidaDB <= 0) vidaDB = 100;
+        }
+        else
+        {
+            Debug.LogWarning("Admin no encontrado. Usando vida por defecto: 100.");
+            vidaDB = 100;
         }
     }
 
     public void setHabilidad(int habilidad) {
         Habilidad = habilidad;
+    }
+
+    public void SetExisteMenu(bool estado)
+    {
+        existeMenu = estado;
     }
 }

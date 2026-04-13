@@ -4,7 +4,23 @@ using UnityEngine;
 
 public class DatabaseManager : MonoBehaviour
 {
+    public static DatabaseManager Instance { get; private set; }
+
     private string connectionString;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
 
     void Start()
     {
@@ -125,7 +141,8 @@ public class DatabaseManager : MonoBehaviour
                         // nivelId 1 = Nivel 1   (bloqueado hasta completar Tutorial)
                         // nivelId 2 = Nivel 2   (bloqueado hasta completar Nivel 1)
                         // nivelId 3 = Nivel 3   (bloqueado hasta completar Nivel 2)
-                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (0, 0);";
+                        // Tutorial empieza como completado para que el Nivel 1 esté desbloqueado desde el inicio
+                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (0, 1);";
                         command.ExecuteNonQuery();
                         command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (1, 0);";
                         command.ExecuteNonQuery();

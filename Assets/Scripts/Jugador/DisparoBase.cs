@@ -71,20 +71,22 @@ public class BalaBase : MonoBehaviour
 
     public void ConsultarBala(int id, int idNivel)
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
+        DatabaseManager script = DatabaseManager.Instance;
+        if (script == null)
+        {
+            GameObject obj = GameObject.FindWithTag("Admin");
+            if (obj != null) obj.TryGetComponent(out script);
+        }
 
-        if (objetoEncontrado != null) 
+        if (script != null)
         {
-            if (objetoEncontrado.TryGetComponent<DatabaseManager>(out DatabaseManager script)) 
-            {
-                dano = script.GetDanoBala(id, idNivel);
-                
-            }
-        } 
-        else 
+            dano = script.GetDanoBala(id, idNivel);
+            if (dano <= 0) dano = 50;
+        }
+        else
         {
-            Debug.LogError("Admin no encontrado");
+            Debug.LogWarning("BalaBase: Admin no encontrado. Usando daño por defecto: 50.");
+            dano = 50;
         }
     }
 }
-
