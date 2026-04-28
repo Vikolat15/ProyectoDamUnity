@@ -18,6 +18,11 @@ public class PatoMovimiento : Entidad
     private int direccion = -1;
     private int vidaDB;
     private int danoDB;
+
+    [SerializeField] private Material flashMaterial;
+    private SpriteRenderer spriteRenderer;
+    private Material originalMaterial;
+    private Coroutine flashRoutine;
     public override int VidaMaxima
     {
         get { return vidaDB; }
@@ -37,6 +42,10 @@ public class PatoMovimiento : Entidad
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         StartCoroutine(SaltoCiclo());
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+            
+        originalMaterial = spriteRenderer.material;
     }
 
     void Update()
@@ -104,7 +113,7 @@ public class PatoMovimiento : Entidad
     {
         if (collision.gameObject.TryGetComponent<Movimientojugador>(out Movimientojugador playerComponent))
         {
-            playerComponent.recibirDano(50);
+            playerComponent.recibirDano(danoDB);
         }
     }
 
@@ -121,8 +130,8 @@ public class PatoMovimiento : Entidad
         {
             vidaDB = script.GetSaludEnemigo(id, idNivel);
             danoDB = script.GetDanoEnemigo(id, idNivel);
-            if (vidaDB <= 0) vidaDB = 300;
-            if (danoDB <= 0) danoDB = 50;
+            if (vidaDB <= 0) vidaDB = 10;
+            if (danoDB <= 0) danoDB = 300;
         }
         else
         {
@@ -135,7 +144,7 @@ public class PatoMovimiento : Entidad
     protected override void Morir()
     {
         updatePuntuacion(50);
-        Destroy(gameObject);
+        Destroy(gameObject, 0.2f);
     }
 
     public void updatePuntuacion(int pt)
@@ -157,5 +166,26 @@ public class PatoMovimiento : Entidad
     public void reducirVelocidad(float vel)
     {
         velocidadHorizontal = vel;
+    }
+
+    public void Flash()
+    {
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+        }
+
+        flashRoutine = StartCoroutine(FlashRoutine());
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        spriteRenderer.material = flashMaterial;
+
+        yield return new WaitForSeconds(0.2f);
+
+        spriteRenderer.material = originalMaterial;
+
+        flashRoutine = null;
     }
 }

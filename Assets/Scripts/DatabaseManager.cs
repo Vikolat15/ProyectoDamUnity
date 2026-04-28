@@ -96,7 +96,6 @@ public class DatabaseManager : MonoBehaviour
                 );";
                 command.ExecuteNonQuery();
 
-                Debug.Log("Tablas insertadas");
             }
         }
     }
@@ -121,18 +120,22 @@ public class DatabaseManager : MonoBehaviour
                         command.CommandText = "INSERT OR IGNORE INTO Personaje (id, idnivel, salud) VALUES (0, 0, 100);";
                         command.ExecuteNonQuery();
 
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (0, 0, 300, 30);";
+                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (0, 0, 200, 35);";
                         command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (1, 0, 300, 50);";
+                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (1, 0, 200, 35);";
                         command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (2, 0, 200, 25);";
+                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (2, 0, 150, 25);";
+                        command.ExecuteNonQuery();
+                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (3, 0, 200, 35);";
+                        command.ExecuteNonQuery();
+                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (4, 0, 300, 50);";
                         command.ExecuteNonQuery();
 
                         command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 50)";
                         command.ExecuteNonQuery();
                         command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 40);";
                         command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 45);";
+                        command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 35);";
                         command.ExecuteNonQuery();
 
                         // --- Inicializar progreso: Tutorial siempre disponible (completado=0),
@@ -152,7 +155,6 @@ public class DatabaseManager : MonoBehaviour
                         command.ExecuteNonQuery();
 
                         transaction.Commit();
-                        Debug.Log("Datos añadidos");
                     }
                     catch (System.Exception e)
                     {

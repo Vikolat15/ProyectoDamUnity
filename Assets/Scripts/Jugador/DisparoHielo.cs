@@ -46,8 +46,10 @@ public class BalaHielo : MonoBehaviour
         PatoMovimiento pato = collision.gameObject.GetComponent<PatoMovimiento>();
         setaMovimiento seta = collision.gameObject.GetComponent<setaMovimiento>();
         GallinaMovimiento gallina = collision.gameObject.GetComponent<GallinaMovimiento>();
+        MurcielagoMovimiento murcielago = collision.gameObject.GetComponent<MurcielagoMovimiento>();
+        RinoceronteMovimiento rinoceronte = collision.gameObject.GetComponent<RinoceronteMovimiento>();
 
-        if (pato != null || seta != null || gallina != null)
+        if (pato != null || seta != null || gallina != null || murcielago != null || rinoceronte != null)
         {
             Collider.enabled = false;
             Sprite.enabled = false;
@@ -55,21 +57,31 @@ public class BalaHielo : MonoBehaviour
             if (pato != null) pato.recibirDano(dano);
             if (seta != null) seta.recibirDano(dano);
             if (gallina != null) gallina.recibirDano(dano);
+            if (murcielago != null) murcielago.recibirDano(dano);
+            if (rinoceronte != null) rinoceronte.recibirDano(dano);
+            if (pato != null) pato.Flash();
+            if (seta != null) seta.Flash();
+            if (gallina != null) gallina.Flash();
+            if (murcielago != null) murcielago.Flash();
+            if (rinoceronte != null) rinoceronte.Flash();
 
             if (pato != null) pato.reducirVelocidad(1.5f);
             if (seta != null) seta.reducirVelocidad(1.5f);
+            if (murcielago != null) murcielago.reducirVelocidad(1.5f);
+            if (rinoceronte != null) rinoceronte.reducirVelocidad(12f);
 
-                yield return new WaitForSeconds(5f); 
+            yield return new WaitForSeconds(5f); 
 
-                if (pato != null) pato.reducirVelocidad(2f);
-                if (seta != null) seta.reducirVelocidad(2f);
-                if (gallina != null) gallina.reducirVelocidad(2f);
-                
+            if (pato != null) pato.reducirVelocidad(2f);
+            if (seta != null) seta.reducirVelocidad(4f);
+            if (gallina != null) gallina.reducirVelocidad(2f);
+            if (murcielago != null) murcielago.reducirVelocidad(2f);
+            if (rinoceronte != null) rinoceronte.reducirVelocidad(18f);
 
             Destroy(gameObject);
         }
-            Destroy(gameObject);
-
+        
+        Destroy(gameObject);
     }
 
     public void ConsultarBala(int id, int idNivel)

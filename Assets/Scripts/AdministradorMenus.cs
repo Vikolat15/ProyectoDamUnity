@@ -12,6 +12,9 @@ public class AdministradorMenus : MonoBehaviour
     public AudioSource audioSource;
     public AudioClip sonidoClick;
     public TextMeshProUGUI textoPuntiacionTutorial;
+    public TextMeshProUGUI textoPuntiacionNivel1;
+    public TextMeshProUGUI textoPuntiacionNivel2;
+    public TextMeshProUGUI textoPuntiacionNivel3;
 
     [Header("Botones de niveles (para bloqueo)")]
     public Button botonNivel1;
@@ -94,9 +97,11 @@ public class AdministradorMenus : MonoBehaviour
         ReproducirClick();
         if (panelMenuPrincipal != null)    panelMenuPrincipal.SetActive(false);
         if (panelSeleccionNiveles != null) panelSeleccionNiveles.SetActive(true);
-        ConsultarPuntuacion(0, 0);
         if (textoPuntiacionTutorial != null)
-            textoPuntiacionTutorial.text = "Record : " + record.ToString();
+            textoPuntiacionTutorial.text = "Record : " + ConsultarPuntuacion(0, 0).ToString();
+            textoPuntiacionNivel1.text = "Record : " + ConsultarPuntuacion(0, 1).ToString();;
+            textoPuntiacionNivel2.text = "Record : " + ConsultarPuntuacion(0, 2).ToString();;
+            textoPuntiacionNivel3.text = "Record : " + ConsultarPuntuacion(0, 3).ToString();;
         ActualizarBotonesNiveles();
         if (canvasInfo != null) canvasInfo.SetActive(false);
     }
@@ -165,9 +170,9 @@ public class AdministradorMenus : MonoBehaviour
     public void AlPresionarVolverNiveles()  { ReproducirClick(); MostrarMenuPrincipal(); }
     public void AlPresionarVolverCreditos() { ReproducirClick(); MostrarMenuPrincipal(); }
 
-    public void ConsultarPuntuacion(int id, int idNivel)
+    public int ConsultarPuntuacion(int id, int idNivel)
     {
         DatabaseManager db = DatabaseManager.Instance;
-        if (db != null) record = db.GetPuntuacionNivel(id, idNivel);
+        return db.GetPuntuacionNivel(idNivel, id);
     }
 }

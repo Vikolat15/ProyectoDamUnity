@@ -37,4 +37,7 @@ public abstract class Entidad : MonoBehaviour
     {
         Destroy(gameObject);
     }
+
+
+    
 }

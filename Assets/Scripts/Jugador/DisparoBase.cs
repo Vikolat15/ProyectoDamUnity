@@ -42,14 +42,27 @@ public class BalaBase : MonoBehaviour
         if (collision.gameObject.TryGetComponent<PatoMovimiento>(out PatoMovimiento enemyComponent1))
         {
             enemyComponent1.recibirDano(dano);
+            enemyComponent1.Flash();
         }
         if (collision.gameObject.TryGetComponent<setaMovimiento>(out setaMovimiento enemyComponent2))
         {
             enemyComponent2.recibirDano(dano);
+            enemyComponent2.Flash();
         }
         if (collision.gameObject.TryGetComponent<GallinaMovimiento>(out GallinaMovimiento enemyComponent3))
         {
             enemyComponent3.recibirDano(dano);
+            enemyComponent3.Flash();
+        }
+        if (collision.gameObject.TryGetComponent<MurcielagoMovimiento>(out MurcielagoMovimiento enemyComponent4))
+        {
+            enemyComponent4.recibirDano(dano);
+            enemyComponent4.Flash();
+        }
+        if (collision.gameObject.TryGetComponent<RinoceronteMovimiento>(out RinoceronteMovimiento enemyComponent5))
+        {
+            enemyComponent5.recibirDano(dano);
+            enemyComponent5.Flash();
         }
         Destroy(gameObject);
     }

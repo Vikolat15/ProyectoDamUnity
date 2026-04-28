@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class setaMovimiento : Entidad
 {
@@ -10,6 +11,11 @@ public class setaMovimiento : Entidad
     private int direccion = 1; 
     private int vidaDB;
     private int danoDB;
+
+    [SerializeField] private Material flashMaterial;
+    private SpriteRenderer spriteRenderer;
+    private Material originalMaterial;
+    private Coroutine flashRoutine;
     public override int VidaMaxima
     {
         get { return vidaDB; } 
@@ -28,6 +34,10 @@ public class setaMovimiento : Entidad
         vida = VidaMaxima; 
         Rigidbody2D = GetComponent<Rigidbody2D>();
         Animator = GetComponent<Animator>();
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+            
+        originalMaterial = spriteRenderer.material;
     }
 
     void Update()
@@ -58,7 +68,7 @@ public class setaMovimiento : Entidad
     {
         if (collision.gameObject.TryGetComponent<Movimientojugador>(out Movimientojugador playerComponent))
         {
-            playerComponent.recibirDano(50);
+            playerComponent.recibirDano(danoDB);
         }
     }
 
@@ -89,7 +99,7 @@ public class setaMovimiento : Entidad
     protected override void Morir()
     {
         updatePuntuacion(50);
-        Destroy(gameObject);
+        Destroy(gameObject, 0.2f);
     }
 
     public void updatePuntuacion(int pt)
@@ -111,5 +121,26 @@ public class setaMovimiento : Entidad
     public void reducirVelocidad(float vel)
     {
         Velocidad = vel;
+    }
+
+    public void Flash()
+    {
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+        }
+
+        flashRoutine = StartCoroutine(FlashRoutine());
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        spriteRenderer.material = flashMaterial;
+
+        yield return new WaitForSeconds(0.2f);
+
+        spriteRenderer.material = originalMaterial;
+
+        flashRoutine = null;
     }
 }

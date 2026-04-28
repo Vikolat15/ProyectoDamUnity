@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class GallinaMovimiento : Entidad
 {
@@ -19,6 +20,11 @@ public class GallinaMovimiento : Entidad
     private bool tieneLineaDeVision = false;
     private int vidaDB;
     private int danoDB;
+
+    [SerializeField] private Material flashMaterial;
+    private SpriteRenderer spriteRenderer;
+    private Material originalMaterial;
+    private Coroutine flashRoutine;
     public override int VidaMaxima
     {
         get { return vidaDB; } 
@@ -38,6 +44,10 @@ public class GallinaMovimiento : Entidad
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         player = GameObject.FindGameObjectWithTag("Player");
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+            
+        originalMaterial = spriteRenderer.material;
     }
 
     void Update()
@@ -136,7 +146,7 @@ void ActualizarDeteccion()
     {
         if (collision.gameObject.TryGetComponent<Movimientojugador>(out Movimientojugador playerComponent))
         {
-            playerComponent.recibirDano(50);
+            playerComponent.recibirDano(danoDB);
         }
     }
 
@@ -166,8 +176,9 @@ void ActualizarDeteccion()
 
     protected override void Morir()
     {
+
         updatePuntuacion(50);
-        Destroy(gameObject);
+        Destroy(gameObject, 0.2f);
     }
 
     public void updatePuntuacion(int pt)
@@ -191,5 +202,26 @@ void ActualizarDeteccion()
     {
         velocidadPersecucion = vel * 2;
         velocidadPatrulla = vel;
+    }
+
+    public void Flash()
+    {
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+        }
+
+        flashRoutine = StartCoroutine(FlashRoutine());
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        spriteRenderer.material = flashMaterial;
+
+        yield return new WaitForSeconds(0.2f);
+
+        spriteRenderer.material = originalMaterial;
+
+        flashRoutine = null;
     }
 }

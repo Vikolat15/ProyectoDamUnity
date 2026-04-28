@@ -46,8 +46,10 @@ public class BalaFuego : MonoBehaviour
         PatoMovimiento pato = collision.gameObject.GetComponent<PatoMovimiento>();
         setaMovimiento seta = collision.gameObject.GetComponent<setaMovimiento>();
         GallinaMovimiento gallina = collision.gameObject.GetComponent<GallinaMovimiento>();
+        MurcielagoMovimiento murcielago = collision.gameObject.GetComponent<MurcielagoMovimiento>();
+        RinoceronteMovimiento rinoceronte = collision.gameObject.GetComponent<RinoceronteMovimiento>();
 
-        if (pato != null || seta != null || gallina != null)
+        if (pato != null || seta != null || gallina != null || murcielago != null || rinoceronte != null)
         {
             Collider.enabled = false;
             Sprite.enabled = false;
@@ -55,6 +57,13 @@ public class BalaFuego : MonoBehaviour
             if (pato != null) pato.recibirDano(dano);
             if (seta != null) seta.recibirDano(dano);
             if (gallina != null) gallina.recibirDano(dano);
+            if (murcielago != null) murcielago.recibirDano(dano);
+            if (rinoceronte != null) rinoceronte.recibirDano(dano);
+            if (pato != null) pato.Flash();
+            if (seta != null) seta.Flash();
+            if (gallina != null) gallina.Flash();
+            if (murcielago != null) murcielago.Flash();
+            if (rinoceronte != null) rinoceronte.Flash();
 
             for (int i = 0; i < 5; i++)
             {
@@ -63,13 +72,15 @@ public class BalaFuego : MonoBehaviour
                 if (pato != null) pato.recibirDano(5);
                 if (seta != null) seta.recibirDano(5);
                 if (gallina != null) gallina.recibirDano(5);
+                if (murcielago != null) murcielago.recibirDano(5);
+                if (rinoceronte != null) rinoceronte.recibirDano(5);
                 
                 Debug.Log("Quemado: " + (i + 1));
             }
             Destroy(gameObject);
         }
-            Destroy(gameObject);
-
+        
+        Destroy(gameObject);
     }
 
     public void ConsultarBala(int id, int idNivel)

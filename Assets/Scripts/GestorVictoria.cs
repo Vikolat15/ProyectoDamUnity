@@ -55,7 +55,8 @@ public class GestorVictoria : MonoBehaviour
         pantallaVictoria.SetActive(true);
 
         // Guardar puntuación (lógica original)
-        insertarPunutuacion(0, 0, ObtenerNombreNivel(), puntuacion);
+        insertarPunutuacion(nivelActualId, 0, ObtenerNombreNivel(), puntuacion);
+        InsertarPuntuacionServer(nivelActualId,0,ObtenerNombreNivel(),puntuacion);
 
         // --- NUEVO: marcar este nivel como completado y desbloquear el siguiente ---
         MarcarProgresoNivel();
@@ -142,4 +143,26 @@ public class GestorVictoria : MonoBehaviour
         else
             Debug.LogError("GestorVictoria: Admin no encontrado al insertar puntuación.");
     }
+
+    public void InsertarPuntuacionServer(int id, int idJuego, string nombre, int puntos)
+    {
+        ServerDatabaseManager script = ServerDatabaseManager.Instance;
+        if (script == null)
+        {
+            GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
+            if (objetoEncontrado != null) 
+            {
+                objetoEncontrado.TryGetComponent(out script);
+            }
+        }
+
+        if (script != null) 
+        {
+            script.InsertarPuntuacionMaximaServer(id, idJuego, nombre, puntos);
+        }
+        else 
+        {
+            Debug.LogError("ServerDatabaseManager no encontrado.");
+        }
+    }   
 }
