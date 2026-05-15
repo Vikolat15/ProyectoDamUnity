@@ -6143,10 +6143,10 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -6127438017125135609, guid: 41d5ee871f0747f44baf78206c7b7f91, type: 2}
   m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 0
+  m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
