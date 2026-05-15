@@ -1,46 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Moneda : MonoBehaviour
 {
+    [SerializeField] private GameObject objetoCanvas;
+
+    private Animator animator;
+    private Collider2D col;
+
     void Start()
     {
-        
+        animator = GetComponent<Animator>();
+        col = GetComponent<Collider2D>();
     }
 
-    void Update()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        
-    }
+        if (collision.CompareTag("Player"))
+        {
+            animator.SetBool("recogida", true);
+            
+            col.enabled = false;
+            
+            updatePuntuacion(25);
 
-private void OnTriggerEnter2D(Collider2D collision)
-{
-if (collision.CompareTag("Player"))
-    {
-        GetComponent<Animator>().SetBool("recogida", true);
-        
-        GetComponent<Collider2D>().enabled = false;
-        
-        updatePuntuacion(25);
-
-        Destroy(gameObject, 0.35f);
+            Destroy(gameObject, 0.35f);
+        }
     }
-}
 
     public void updatePuntuacion(int pt)
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Canvas");
-    
-        if (objetoEncontrado != null) 
+        // Usamos la referencia directa asignada en lugar de Find
+        if (objetoCanvas != null && objetoCanvas.TryGetComponent<Puntuacion>(out Puntuacion script))
         {
-            if (objetoEncontrado.TryGetComponent<Puntuacion>(out Puntuacion script)) {
-                script.changePuntuacion(pt);
-            }
-        } else
-        {
-            Debug.LogError("Canvas no encontrado");
-            return;
+            script.changePuntuacion(pt);
         }
     }
 }

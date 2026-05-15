@@ -3,16 +3,17 @@ using System.Collections;
 
 public class PatoMovimiento : Entidad
 {
+    [SerializeField] private GameObject objetoCanvas;
+
     public float fuerzaSalto = 5f;
     public float velocidadHorizontal = 2f;
     public float esperaEntreSaltos = 1.0f; 
     public int saltosPorDireccion = 3;
-    public Animator animador;
     
-    [Header("Detección de Suelo")]
     public Transform comprobadorSuelo; 
     public float radioSuelo = 0.2f;
     public LayerMask capaSuelo;
+
     private Rigidbody2D rb;
     private Animator animator;
     private int direccion = -1;
@@ -23,6 +24,9 @@ public class PatoMovimiento : Entidad
     private SpriteRenderer spriteRenderer;
     private Material originalMaterial;
     private Coroutine flashRoutine;
+    [SerializeField] public AudioSource audioSource;
+
+    [SerializeField] private int nivel;
     public override int VidaMaxima
     {
         get { return vidaDB; }
@@ -35,17 +39,16 @@ public class PatoMovimiento : Entidad
         protected set { base.Dano = value; }
     }
 
-    void Start()
+    new void Start()
     {
         ConsultarEnemigo(1, 0);
-        vida = VidaMaxima; 
+        vida = VidaMaxima;
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        StartCoroutine(SaltoCiclo());
-
         spriteRenderer = GetComponent<SpriteRenderer>();
-            
         originalMaterial = spriteRenderer.material;
+
+        StartCoroutine(SaltoCiclo());
     }
 
     void Update()
@@ -53,18 +56,15 @@ public class PatoMovimiento : Entidad
         ActualizarAnimaciones();
     }
 
-
     IEnumerator SaltoCiclo()
     {
         while (true)
         {
             for (int i = 0; i < saltosPorDireccion; i++)
             {
-                yield return new WaitForFixedUpdate();
-
                 while (!EstaEnElSuelo())
                 {
-                    yield return new WaitForSeconds(0.1f);
+                    yield return null;
                 }
 
                 yield return new WaitForSeconds(esperaEntreSaltos);
@@ -75,69 +75,75 @@ public class PatoMovimiento : Entidad
             }
 
             direccion *= -1;
-            transform.localScale = new Vector3(direccion > 0 ? -1 : 1, 1, 1);
+
+            float escalaX = direccion > 0 ? -1f : 1f;
+            transform.localScale = new Vector3(escalaX, 1f, 1f);
         }
     }
 
     void ActualizarAnimaciones()
     {
-        if (animator == null || rb == null) return;
-
-        bool enSuelo = EstaEnElSuelo();
-
-        animator.SetBool("jumping", !enSuelo);
+        if (animator != null)
+        {
+            animator.SetBool("jumping", !EstaEnElSuelo());
+        }
     }
-
 
     bool EstaEnElSuelo()
     {
         if (comprobadorSuelo != null)
         {
-            return Physics2D.OverlapCircle(comprobadorSuelo.position, radioSuelo, capaSuelo);
+            return Physics2D.OverlapCircle(
+                comprobadorSuelo.position,
+                radioSuelo,
+                capaSuelo
+            );
         }
+
         return Mathf.Abs(rb.velocity.y) < 0.1f;
     }
 
-    private void OnDrawGizmos()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (comprobadorSuelo != null)
+        if (collision.gameObject.TryGetComponent<Movimientojugador>(out Movimientojugador player))
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(comprobadorSuelo.position, radioSuelo);
+            Rigidbody2D Rigidbody2DPlayer = collision.gameObject.GetComponent<Rigidbody2D>();
+
+            bool empujado = Rigidbody2DPlayer.velocity.y < -0.1f && Rigidbody2DPlayer.transform.position.y > transform.position.y + 0.5f;
+
+                player.recibirDano(danoDB);
+                StartCoroutine(Empuje(player, Rigidbody2DPlayer));
+            
         }
     }
 
-
-
-    private void OnCollisionEnter2D(Collision2D collision)
+    private IEnumerator Empuje(Movimientojugador player, Rigidbody2D Rigidbody2D)
     {
-        if (collision.gameObject.TryGetComponent<Movimientojugador>(out Movimientojugador playerComponent))
-        {
-            playerComponent.recibirDano(danoDB);
-        }
+        player.recibiendoEmpuje = true;
+
+        float Dirrecion = (Rigidbody2D.transform.position.x > transform.position.x) ? 1f : -1f;
+
+        float fuerzaHorizontal = 8f;
+        float fuerzaVertical = 12f;    
+
+        Rigidbody2D.velocity = new Vector2(Dirrecion * fuerzaHorizontal, fuerzaVertical);
+
+        yield return new WaitForSeconds(0.2f);
+
+        Rigidbody2D.velocity = new Vector2(Rigidbody2D.velocity.x * 0.5f, Rigidbody2D.velocity.y);
+
+        player.recibiendoEmpuje = false;
     }
 
     public void ConsultarEnemigo(int id, int idNivel)
     {
-        DatabaseManager script = DatabaseManager.Instance;
-        if (script == null)
+        if (DatabaseManager.Instance != null)
         {
-            GameObject obj = GameObject.FindWithTag("Admin");
-            if (obj != null) obj.TryGetComponent(out script);
-        }
+            vidaDB = DatabaseManager.Instance.GetSaludEnemigo(id, idNivel);
+            danoDB = DatabaseManager.Instance.GetDanoEnemigo(id, idNivel);
 
-        if (script != null)
-        {
-            vidaDB = script.GetSaludEnemigo(id, idNivel);
-            danoDB = script.GetDanoEnemigo(id, idNivel);
-            if (vidaDB <= 0) vidaDB = 10;
-            if (danoDB <= 0) danoDB = 300;
-        }
-        else
-        {
-            Debug.LogWarning("PatoMovimiento: Admin no encontrado. Usando valores por defecto.");
-            vidaDB = 300;
-            danoDB = 50;
+            if (vidaDB <= 0) vidaDB = 200;
+            if (danoDB <= 0) danoDB = 35;
         }
     }
 
@@ -149,17 +155,8 @@ public class PatoMovimiento : Entidad
 
     public void updatePuntuacion(int pt)
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Canvas");
-    
-        if (objetoEncontrado != null) 
-        {
-            if (objetoEncontrado.TryGetComponent<Puntuacion>(out Puntuacion script)) {
-                script.changePuntuacion(pt);
-            }
-        } else
-        {
-            Debug.LogError("Canvas no encontrado");
-            return;
+        if (objetoCanvas.TryGetComponent<Puntuacion>(out Puntuacion script)) {
+            script.changePuntuacion(pt);
         }
     }
 
@@ -171,9 +168,7 @@ public class PatoMovimiento : Entidad
     public void Flash()
     {
         if (flashRoutine != null)
-        {
             StopCoroutine(flashRoutine);
-        }
 
         flashRoutine = StartCoroutine(FlashRoutine());
     }

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2487504453520432930}
   - component: {fileID: 1646686097831542573}
   - component: {fileID: 8691471830692673675}
-  - component: {fileID: 6074871401076054792}
+  - component: {fileID: -2763456257605857542}
   m_Layer: 8
   m_Name: BulletFuego
   m_TagString: Untagged
@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocidadBala: 22
---- !u!82 &6074871401076054792
+--- !u!82 &-2763456257605857542
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -183,9 +183,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: d9b94e7a4ea45ee44bb9cb6cbe08002c, type: 3}
+  m_audioClip: {fileID: 8300000, guid: e03b3357789b3c445be6a51f21c1d054, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.25
   m_Pitch: 1
   Loop: 0
   Mute: 0

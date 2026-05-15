@@ -59,11 +59,18 @@ public class BalaFuego : MonoBehaviour
             if (gallina != null) gallina.recibirDano(dano);
             if (murcielago != null) murcielago.recibirDano(dano);
             if (rinoceronte != null) rinoceronte.recibirDano(dano);
+            
             if (pato != null) pato.Flash();
             if (seta != null) seta.Flash();
             if (gallina != null) gallina.Flash();
             if (murcielago != null) murcielago.Flash();
             if (rinoceronte != null) rinoceronte.Flash();
+
+            AudioSource audioEnemigo = collision.gameObject.GetComponent<AudioSource>();
+            if (audioEnemigo != null)
+            {
+                audioEnemigo.Play();
+            }
 
             for (int i = 0; i < 5; i++)
             {
@@ -74,8 +81,6 @@ public class BalaFuego : MonoBehaviour
                 if (gallina != null) gallina.recibirDano(5);
                 if (murcielago != null) murcielago.recibirDano(5);
                 if (rinoceronte != null) rinoceronte.recibirDano(5);
-                
-                Debug.Log("Quemado: " + (i + 1));
             }
             Destroy(gameObject);
         }
@@ -99,7 +104,6 @@ public class BalaFuego : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("BalaFuego: Admin no encontrado. Usando daño por defecto: 40.");
             dano = 40;
         }
     }

@@ -59,6 +59,7 @@ public class BalaHielo : MonoBehaviour
             if (gallina != null) gallina.recibirDano(dano);
             if (murcielago != null) murcielago.recibirDano(dano);
             if (rinoceronte != null) rinoceronte.recibirDano(dano);
+            
             if (pato != null) pato.Flash();
             if (seta != null) seta.Flash();
             if (gallina != null) gallina.Flash();
@@ -69,6 +70,12 @@ public class BalaHielo : MonoBehaviour
             if (seta != null) seta.reducirVelocidad(1.5f);
             if (murcielago != null) murcielago.reducirVelocidad(1.5f);
             if (rinoceronte != null) rinoceronte.reducirVelocidad(12f);
+
+            AudioSource audioEnemigo = collision.gameObject.GetComponent<AudioSource>();
+            if (audioEnemigo != null)
+            {
+                audioEnemigo.Play();
+            }
 
             yield return new WaitForSeconds(5f); 
 
@@ -100,7 +107,6 @@ public class BalaHielo : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("BalaHielo: Admin no encontrado. Usando daño por defecto: 45.");
             dano = 45;
         }
     }

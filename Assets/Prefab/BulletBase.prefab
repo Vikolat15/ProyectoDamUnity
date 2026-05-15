@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2487504453520432930}
   - component: {fileID: 1646686097831542573}
   - component: {fileID: -2709031376818351187}
-  - component: {fileID: 3006403605562075496}
+  - component: {fileID: -872337302329082050}
   m_Layer: 8
   m_Name: BulletBase
   m_TagString: Untagged
@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocidadBala: 16
---- !u!82 &3006403605562075496
+--- !u!82 &-872337302329082050
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -183,9 +183,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 7e7d6dc87d8c3ac4a8de915969c266ce, type: 3}
+  m_audioClip: {fileID: 8300000, guid: a2e00550d0ddc974f8c6a09dd054deb7, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.25
   m_Pitch: 1
   Loop: 0
   Mute: 0

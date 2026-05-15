@@ -25,7 +25,6 @@ public class DatabaseManager : MonoBehaviour
     void Start()
     {
         connectionString = "URI=file:" + Application.persistentDataPath + "/GameData.db";
-        Debug.Log("Base de datos en: " + Application.persistentDataPath);
 
         CrearEstructuraBaseDeDatos();
         AnadirCamposBase();
@@ -49,7 +48,8 @@ public class DatabaseManager : MonoBehaviour
                 command.CommandText = @"CREATE TABLE IF NOT EXISTS Juego (
                     id INTEGER PRIMARY KEY,
                     nombre TEXT,
-                    version TEXT
+                    version TEXT,
+                    nombrePerfil TEXT
                 );";
                 command.ExecuteNonQuery();
 
@@ -87,9 +87,6 @@ public class DatabaseManager : MonoBehaviour
                 );";
                 command.ExecuteNonQuery();
 
-                // --- NUEVA TABLA: progreso de niveles desbloqueados ---
-                // nivelId: 0=Tutorial, 1=Nivel1, 2=Nivel2, 3=Nivel3
-                // completado: 1 si el jugador ya lo ha superado
                 command.CommandText = @"CREATE TABLE IF NOT EXISTS ProgresoNivel (
                     nivelId INTEGER PRIMARY KEY,
                     completado INTEGER NOT NULL DEFAULT 0
@@ -100,93 +97,154 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    public void AnadirCamposBase()
+public void AnadirCamposBase()
+{
+    using (var connection = new SqliteConnection(connectionString))
     {
-        using (var connection = new SqliteConnection(connectionString))
+        connection.Open();
+        using (var transaction = connection.BeginTransaction())
         {
-            connection.Open();
-            using (var transaction = connection.BeginTransaction())
+            using (var command = connection.CreateCommand())
             {
-                using (var command = connection.CreateCommand())
+                try
                 {
-                    try
-                    {
-                        command.CommandText = "INSERT OR IGNORE INTO Juego (id, nombre, version) VALUES (0, 'LogFall', '1.0');";
-                        command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Juego (id, nombre, version, nombrePerfil) VALUES (0, 'LogFall', '1.0', 'Default');";
+                    command.ExecuteNonQuery();
 
-                        command.CommandText = "INSERT OR IGNORE INTO Nivel (id, idjuego, nombre, puntuacionMaxima) VALUES (0, 0, 'Tutorial', 0);";
-                        command.ExecuteNonQuery();
+                    // NIVEL 0
+                    command.CommandText = "INSERT OR IGNORE INTO Nivel (id, idjuego, nombre, puntuacionMaxima) VALUES (0, 0, 'Tutorial', 0);";
+                    command.ExecuteNonQuery();
 
-                        command.CommandText = "INSERT OR IGNORE INTO Personaje (id, idnivel, salud) VALUES (0, 0, 100);";
-                        command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Personaje (id, idnivel, salud) VALUES (0, 0, 100);";
+                    command.ExecuteNonQuery();
 
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (0, 0, 200, 35);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (1, 0, 200, 35);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (2, 0, 150, 25);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (3, 0, 200, 35);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (4, 0, 300, 50);";
-                        command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (0, 0, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (1, 0, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (2, 0, 150, 25);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (3, 0, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (4, 0, 300, 50);";
+                    command.ExecuteNonQuery();
 
-                        command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 50)";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 40);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 35);";
-                        command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 0, 50);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (1, 0, 40);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (2, 0, 35);";
+                    command.ExecuteNonQuery();
 
-                        // --- Inicializar progreso: Tutorial siempre disponible (completado=0),
-                        //     el resto bloqueados hasta que se complete el anterior ---
-                        // nivelId 0 = Tutorial  (siempre desbloqueado, empieza sin completar)
-                        // nivelId 1 = Nivel 1   (bloqueado hasta completar Tutorial)
-                        // nivelId 2 = Nivel 2   (bloqueado hasta completar Nivel 1)
-                        // nivelId 3 = Nivel 3   (bloqueado hasta completar Nivel 2)
-                        // Tutorial empieza como completado para que el Nivel 1 esté desbloqueado desde el inicio
-                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (0, 1);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (1, 0);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (2, 0);";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (3, 0);";
-                        command.ExecuteNonQuery();
 
-                        transaction.Commit();
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogError("Error en base de datos" + e.Message);
-                        transaction.Rollback();
-                    }
+                    // NIVEL 1
+                    command.CommandText = "INSERT OR IGNORE INTO Nivel (id, idjuego, nombre, puntuacionMaxima) VALUES (1, 0, 'Nivel 1', 0);";
+                    command.ExecuteNonQuery();
+
+                    // Se corrigió el id del personaje a 1 para que coincida con sus balas asignadas
+                    command.CommandText = "INSERT OR IGNORE INTO Personaje (id, idnivel, salud) VALUES (0, 1, 100);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (0, 1, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (1, 1, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (2, 1, 150, 25);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (3, 1, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (4, 1, 300, 50);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 1, 50);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (1, 1, 40);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (2, 1, 35);";
+                    command.ExecuteNonQuery();
+
+
+                    // NIVEL 2
+                    command.CommandText = "INSERT OR IGNORE INTO Nivel (id, idjuego, nombre, puntuacionMaxima) VALUES (2, 0, 'Nivel 2', 0);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Personaje (id, idnivel, salud) VALUES (0, 2, 100);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (0, 2, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (1, 2, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (2, 2, 150, 25);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (3, 2, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (4, 2, 300, 50);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 2, 50);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (1, 2, 40);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (2, 2, 35);";
+                    command.ExecuteNonQuery();
+
+
+                    // NIVEL 3
+                    command.CommandText = "INSERT OR IGNORE INTO Nivel (id, idjuego, nombre, puntuacionMaxima) VALUES (3, 0, 'Nivel 3', 0);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Personaje (id, idnivel, salud) VALUES (0, 3, 100);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (0, 3, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (1, 3, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (2, 3, 150, 25);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (3, 3, 200, 35);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Enemigo (id, idnivel, salud, dano) VALUES (4, 3, 300, 50);";
+                    command.ExecuteNonQuery();
+
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (0, 3, 50);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (1, 3, 40);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO Bala (id, idpersonaje, dano) VALUES (2, 3, 35);";
+                    command.ExecuteNonQuery();
+
+                    // PROGRESO
+                    command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (0, 1);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (1, 0);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (2, 0);";
+                    command.ExecuteNonQuery();
+                    command.CommandText = "INSERT OR IGNORE INTO ProgresoNivel (nivelId, completado) VALUES (3, 0);";
+                    command.ExecuteNonQuery();
+
+                    transaction.Commit();
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Error en base de datos" + e.Message);
+                    transaction.Rollback();
                 }
             }
         }
     }
+}
 
-    // ---------------------------------------------------------------
-    //  PROGRESO DE NIVELES
-    // ---------------------------------------------------------------
-
-    /// <summary>
-    /// Devuelve true si el nivel con el id dado está desbloqueado.
-    /// El Tutorial (nivelId=0) siempre está desbloqueado.
-    /// El resto se desbloquean cuando el nivel anterior está completado.
-    /// </summary>
     public bool IsNivelDesbloqueado(int nivelId)
     {
-        if (nivelId == 0) return true; // Tutorial siempre accesible
+        if (nivelId == 0) return true;
 
-        // Comprueba si el nivel anterior está completado
         int nivelAnterior = nivelId - 1;
         return GetNivelCompletado(nivelAnterior);
     }
 
-    /// <summary>
-    /// Devuelve true si el nivel indicado ya fue completado.
-    /// </summary>
     public bool GetNivelCompletado(int nivelId)
     {
         using (var connection = new SqliteConnection(connectionString))
@@ -201,9 +259,6 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Marca el nivel indicado como completado en la base de datos.
-    /// </summary>
     public void MarcarNivelCompletado(int nivelId)
     {
         using (var connection = new SqliteConnection(connectionString))
@@ -213,14 +268,9 @@ public class DatabaseManager : MonoBehaviour
             {
                 command.CommandText = $"UPDATE ProgresoNivel SET completado = 1 WHERE nivelId = {nivelId};";
                 command.ExecuteNonQuery();
-                Debug.Log($"Nivel {nivelId} marcado como completado.");
             }
         }
     }
-
-    // ---------------------------------------------------------------
-    //  MÉTODOS EXISTENTES (sin cambios)
-    // ---------------------------------------------------------------
 
     public int GetSaludPersonaje(int id, int idNivel)
     {
@@ -292,17 +342,45 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    public void insertarPunutuacionMaxima(int id, int idJuego, string nombre, int puntos)
+    public void insertarNombrePerfil(int idJuego, string nombre)
     {
         using (var connection = new SqliteConnection(connectionString))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = $@"
-                    INSERT OR REPLACE INTO Nivel (id, idjuego, nombre, puntuacionMaxima) 
-                    VALUES ({id}, {idJuego}, '{nombre}', {puntos});";
+                command.CommandText = $"UPDATE Juego SET nombrePerfil = '{nombre}' WHERE id = {idJuego};";
                 command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public string GetNombrePerfil(int idJuego)
+    {
+        using (var connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT nombrePerfil FROM Juego WHERE id = {idJuego};";
+                object result = command.ExecuteScalar();
+                
+                return (result != null && result != System.DBNull.Value) ? result.ToString() : "Jugador";
+            }
+        }
+    }
+
+    public void insertarPunutuacionMaxima(int idNivel, int puntos)
+    {
+        using (var connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $@"UPDATE Nivel SET puntuacionMaxima = {puntos} WHERE id = {idNivel} AND {puntos} > puntuacionMaxima;";
+                
+                int filasAfectadas = command.ExecuteNonQuery();
+                
             }
         }
     }

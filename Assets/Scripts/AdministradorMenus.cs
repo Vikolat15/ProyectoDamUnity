@@ -8,6 +8,8 @@ public class AdministradorMenus : MonoBehaviour
     public GameObject panelMenuPrincipal;
     public GameObject panelSeleccionNiveles;
     public GameObject panelCreditos;
+    public GameObject panelPerfil;
+    public GameObject panelError;
     public GameObject canvasInfo;
     public AudioSource audioSource;
     public AudioClip sonidoClick;
@@ -15,8 +17,9 @@ public class AdministradorMenus : MonoBehaviour
     public TextMeshProUGUI textoPuntiacionNivel1;
     public TextMeshProUGUI textoPuntiacionNivel2;
     public TextMeshProUGUI textoPuntiacionNivel3;
-
-    [Header("Botones de niveles (para bloqueo)")]
+    public TMP_InputField labelNombre;
+    public TMP_InputField labelID;
+    public TMP_InputField labelPassword;
     public Button botonNivel1;
     public Button botonNivel2;
     public Button botonNivel3;
@@ -54,7 +57,6 @@ public class AdministradorMenus : MonoBehaviour
     {
         if (scene.name == "MenuPrincipal")
         {
-            // Volvemos al menú: mostrarlo y resetear estado
             Time.timeScale = 1f;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
@@ -63,7 +65,6 @@ public class AdministradorMenus : MonoBehaviour
         }
         else
         {
-            // Entramos a un nivel: ocultar el menú
             gameObject.SetActive(false);
         }
     }
@@ -95,24 +96,77 @@ public class AdministradorMenus : MonoBehaviour
     public void AlPresionarJugar()
     {
         ReproducirClick();
-        if (panelMenuPrincipal != null)    panelMenuPrincipal.SetActive(false);
-        if (panelSeleccionNiveles != null) panelSeleccionNiveles.SetActive(true);
-        if (textoPuntiacionTutorial != null)
-            textoPuntiacionTutorial.text = "Record : " + ConsultarPuntuacion(0, 0).ToString();
-            textoPuntiacionNivel1.text = "Record : " + ConsultarPuntuacion(0, 1).ToString();;
-            textoPuntiacionNivel2.text = "Record : " + ConsultarPuntuacion(0, 2).ToString();;
-            textoPuntiacionNivel3.text = "Record : " + ConsultarPuntuacion(0, 3).ToString();;
+        panelMenuPrincipal.SetActive(false);
+        panelSeleccionNiveles.SetActive(true);
+        
+        textoPuntiacionTutorial.text = "Record : " + ConsultarPuntuacion(0, 0).ToString();
+        textoPuntiacionNivel1.text = "Record : " + ConsultarPuntuacion(0, 1).ToString();;
+        textoPuntiacionNivel2.text = "Record : " + ConsultarPuntuacion(0, 2).ToString();;
+        textoPuntiacionNivel3.text = "Record : " + ConsultarPuntuacion(0, 3).ToString();;
         ActualizarBotonesNiveles();
-        if (canvasInfo != null) canvasInfo.SetActive(false);
     }
 
     private void ActualizarBotonesNiveles()
     {
         DatabaseManager db = DatabaseManager.Instance;
-        if (db == null) return;
-        if (botonNivel1 != null) botonNivel1.interactable = db.IsNivelDesbloqueado(1);
-        if (botonNivel2 != null) botonNivel2.interactable = db.IsNivelDesbloqueado(2);
-        if (botonNivel3 != null) botonNivel3.interactable = db.IsNivelDesbloqueado(3);
+        botonNivel1.interactable = db.IsNivelDesbloqueado(1);
+        botonNivel2.interactable = db.IsNivelDesbloqueado(2);
+        botonNivel3.interactable = db.IsNivelDesbloqueado(3);
+    }
+
+    public void MostrarPanelPerfil()
+    {
+        ReproducirClick();
+
+        panelMenuPrincipal.SetActive(false);
+
+        panelPerfil.SetActive(true);
+    }
+
+    public void GuardarPerfil()
+    {
+        ReproducirClick();
+        VolverDelPerfilAlMenu();
+
+        if (!string.IsNullOrWhiteSpace(labelNombre.text))
+        {
+            DatabaseManager.Instance.insertarNombrePerfil(0, labelNombre.text);
+        }
+
+        bool conectado = ServerDatabaseManager.Instance.IniciarConexion(labelID.text, labelPassword.text);
+
+        if (!conectado)
+        {
+            MostrarPanelError();
+        }
+    }
+
+    public void VolverDelPerfilAlMenu()
+    {
+        ReproducirClick();
+        MostrarMenuPrincipal();
+
+        if (panelPerfil != null)
+            panelPerfil.SetActive(false);
+    }
+
+    public void MostrarPanelError()
+    {
+
+        if (panelMenuPrincipal != null)
+            panelMenuPrincipal.SetActive(false);
+
+        if (panelError != null)
+            panelError.SetActive(true);
+    }
+
+    public void VolverDelErrorAlMenu()
+    {
+
+        MostrarMenuPrincipal();
+
+        if (panelError != null)
+            panelError.SetActive(false);
     }
 
     public void CargarTutorial()
@@ -125,7 +179,9 @@ public class AdministradorMenus : MonoBehaviour
     public void CargarNivel1()
     {
         DatabaseManager db = DatabaseManager.Instance;
-        if (db != null && !db.IsNivelDesbloqueado(1)) { Debug.Log("Nivel 1 bloqueado."); return; }
+        if (db != null && !db.IsNivelDesbloqueado(1)) { 
+            Debug.Log("Nivel 1 bloqueado."); return; 
+        }
         ReproducirClick();
         gameObject.SetActive(false);
         SceneManager.LoadScene("Nivel1");
@@ -134,7 +190,9 @@ public class AdministradorMenus : MonoBehaviour
     public void CargarNivel2()
     {
         DatabaseManager db = DatabaseManager.Instance;
-        if (db != null && !db.IsNivelDesbloqueado(2)) { Debug.Log("Nivel 2 bloqueado."); return; }
+        if (db != null && !db.IsNivelDesbloqueado(2)) { 
+            Debug.Log("Nivel 2 bloqueado."); return; 
+        }
         ReproducirClick();
         gameObject.SetActive(false);
         SceneManager.LoadScene("Nivel2");
@@ -143,7 +201,9 @@ public class AdministradorMenus : MonoBehaviour
     public void CargarNivel3()
     {
         DatabaseManager db = DatabaseManager.Instance;
-        if (db != null && !db.IsNivelDesbloqueado(3)) { Debug.Log("Nivel 3 bloqueado."); return; }
+        if (db != null && !db.IsNivelDesbloqueado(3)) { 
+            Debug.Log("Nivel 3 bloqueado."); return; 
+        }
         ReproducirClick();
         gameObject.SetActive(false);
         SceneManager.LoadScene("Nivel3");
@@ -152,9 +212,9 @@ public class AdministradorMenus : MonoBehaviour
     public void AlPresionarCreditos()
     {
         ReproducirClick();
-        if (panelMenuPrincipal != null) panelMenuPrincipal.SetActive(false);
-        if (panelCreditos != null)      panelCreditos.SetActive(true);
-        if (canvasInfo != null)         canvasInfo.SetActive(false);
+        panelMenuPrincipal.SetActive(false);
+        panelCreditos.SetActive(true);
+        canvasInfo.SetActive(false);
     }
 
     public void AlPresionarSalir()

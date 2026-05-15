@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2487504453520432930}
   - component: {fileID: 1646686097831542573}
   - component: {fileID: -7427957563342600006}
-  - component: {fileID: 4091936485335359478}
+  - component: {fileID: 3747413297096120740}
   m_Layer: 8
   m_Name: BulletHielo
   m_TagString: Untagged
@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocidadBala: 14
---- !u!82 &4091936485335359478
+--- !u!82 &3747413297096120740
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -183,9 +183,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: e301961b8b39b2447acbce4790e991c0, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 1a6f4d8d471c24a489d920b810a5a7dc, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.25
   m_Pitch: 1
   Loop: 0
   Mute: 0

@@ -3,7 +3,10 @@ using UnityEngine.SceneManagement;
 
 public class MenuPausa : MonoBehaviour
 {
-    public GameObject objetoMenuPausa;
+    [Header("Referencias Directas")]
+    [SerializeField] private GameObject objetoMenuPausa;
+    [SerializeField] private GameObject objetoJugador; 
+
     private bool estaPausado = false;
 
     void Update()
@@ -18,43 +21,48 @@ public class MenuPausa : MonoBehaviour
     public void Pausar()
     {
         estaPausado = true;
-        objetoMenuPausa.SetActive(true);
+        if (objetoMenuPausa != null) objetoMenuPausa.SetActive(true);
+        
         Time.timeScale = 0f;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+        
         SetExisteMenu(true);
     }
 
     public void Reanudar()
     {
         estaPausado = false;
-        objetoMenuPausa.SetActive(false);
+        if (objetoMenuPausa != null) objetoMenuPausa.SetActive(false);
+        
         Time.timeScale = 1f;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+        
         SetExisteMenu(false);
     }
 
-   public void Reiniciar()
-{
-    Time.timeScale = 1f;
-    Cursor.visible = true;                          
-    Cursor.lockState = CursorLockMode.None;         
-    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-}
+    public void Reiniciar()
+    {
+        Time.timeScale = 1f;
+        Cursor.visible = true;                          
+        Cursor.lockState = CursorLockMode.None;         
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 
-public void VolverAlMenu()
-{
-    Time.timeScale = 1f;
-    Cursor.visible = true;
-    Cursor.lockState = CursorLockMode.None;
-    SceneManager.LoadScene("MenuPrincipal");
-}
+    public void VolverAlMenu()
+    {
+        Time.timeScale = 1f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        SceneManager.LoadScene("MenuPrincipal");
+    }
 
     private void SetExisteMenu(bool estado)
     {
-        Movimientojugador jugador = FindObjectOfType<Movimientojugador>();
-        if (jugador != null)
-            jugador.SetExisteMenu(estado);
+        if (objetoJugador != null && objetoJugador.TryGetComponent<Movimientojugador>(out Movimientojugador script))
+        {
+            script.SetExisteMenu(estado);
+        }
     }
 }

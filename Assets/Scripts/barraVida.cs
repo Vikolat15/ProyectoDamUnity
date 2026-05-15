@@ -17,7 +17,6 @@ public class HealthBarScript : MonoBehaviour
 
     void Update()
     {
-        // Actualizar visualmente (Slider y Texto)
         healthBarValueText.text = currHealth.ToString() + "/" + maxHealth.ToString();
         healthBarSlider.maxValue = maxHealth;
         healthBarSlider.value = currHealth;

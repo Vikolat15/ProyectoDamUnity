@@ -3,25 +3,24 @@ using TMPro;
 
 public class GestorVictoria : MonoBehaviour
 {
+    [Header("Referencias Directas (UI)")]
     public GameObject pantallaVictoria;
     public TextMeshProUGUI textoTiempo;
     public TextMeshProUGUI textoPuntuacion;
-
-    // ---------------------------------------------------------------
-    // IMPORTANTE: Asigna en el Inspector el nivelId de esta escena:
-    //   Tutorial = 0 | Nivel1 = 1 | Nivel2 = 2 | Nivel3 = 3
-    // ---------------------------------------------------------------
-    [Header("Progreso de niveles")]
-    [Tooltip("0=Tutorial  1=Nivel1  2=Nivel2  3=Nivel3")]
+    [SerializeField] private GameObject objetoCanvas;
     public int nivelActualId = 0;
 
     private float tiempoTranscurrido = 0f;
     private int puntuacion = 0;
+
+    private string nombrePerfil = "";
     private bool juegoTerminado = false;
 
     void Start()
     {
-        pantallaVictoria.SetActive(false);
+        if (pantallaVictoria != null)
+            pantallaVictoria.SetActive(false);
+        
         ResetearTiempo();
     }
 
@@ -49,16 +48,27 @@ public class GestorVictoria : MonoBehaviour
         int segundos = (int)(tiempoTranscurrido % 60);
 
         textoTiempo.text = $"Tiempo: {minutos:00}:{segundos:00}";
+        
         recibirPuntuacion();
+        recibirNombrePerfil();
         textoPuntuacion.text = "Puntuacion: " + puntuacion.ToString();
 
         pantallaVictoria.SetActive(true);
 
-        // Guardar puntuación (lógica original)
-        insertarPunutuacion(nivelActualId, 0, ObtenerNombreNivel(), puntuacion);
-        InsertarPuntuacionServer(nivelActualId,0,ObtenerNombreNivel(),puntuacion);
+        string nombreNivel = ObtenerNombreNivel();
+        
+        if (DatabaseManager.Instance != null)
+        {
+            DatabaseManager.Instance.insertarPunutuacionMaxima(nivelActualId, puntuacion);
+        }
 
-        // --- NUEVO: marcar este nivel como completado y desbloquear el siguiente ---
+
+        if (ServerDatabaseManager.Instance != null)
+        {
+            ServerDatabaseManager.Instance.InsertarPuntuacionMaximaServer(nombrePerfil, nivelActualId,puntuacion);
+        }
+
+
         MarcarProgresoNivel();
 
         Time.timeScale = 0f;
@@ -66,36 +76,19 @@ public class GestorVictoria : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
     }
 
-    // ---------------------------------------------------------------
-    //  PROGRESO
-    // ---------------------------------------------------------------
-
-    /// <summary>
-    /// Busca el DatabaseManager y marca el nivel actual como completado.
-    /// </summary>
     private void MarcarProgresoNivel()
     {
-        DatabaseManager db = DatabaseManager.Instance;
-        if (db == null)
+        // Acceso directo por Singleton
+        if (DatabaseManager.Instance != null)
         {
-            GameObject adminObj = GameObject.FindWithTag("Admin");
-            if (adminObj != null) adminObj.TryGetComponent(out db);
-        }
-
-        if (db != null)
-        {
-            db.MarcarNivelCompletado(nivelActualId);
-            Debug.Log($"Nivel {nivelActualId} ({ObtenerNombreNivel()}) completado.");
+            DatabaseManager.Instance.MarcarNivelCompletado(nivelActualId);
         }
         else
         {
-            Debug.LogError("GestorVictoria: No se encontró DatabaseManager.");
+            Debug.LogError("GestorVictoria: DatabaseManager.Instance no encontrado.");
         }
     }
 
-    /// <summary>
-    /// Devuelve el nombre legible del nivel actual según nivelActualId.
-    /// </summary>
     private string ObtenerNombreNivel()
     {
         switch (nivelActualId)
@@ -108,61 +101,16 @@ public class GestorVictoria : MonoBehaviour
         }
     }
 
-    // ---------------------------------------------------------------
-    //  MÉTODOS EXISTENTES (sin cambios)
-    // ---------------------------------------------------------------
-
     public void recibirPuntuacion()
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Canvas");
-
-        if (objetoEncontrado != null)
+        if (objetoCanvas != null && objetoCanvas.TryGetComponent<Puntuacion>(out Puntuacion script))
         {
-            if (objetoEncontrado.TryGetComponent<Puntuacion>(out Puntuacion script))
-            {
-                puntuacion = script.GetPuntuacionNivel();
-            }
-        }
-        else
-        {
-            Debug.LogError("Canvas no encontrado");
+            puntuacion = script.GetPuntuacionNivel();
         }
     }
 
-    public void insertarPunutuacion(int id, int idJuego, string nombre, int puntos)
+    public void recibirNombrePerfil()
     {
-        DatabaseManager script = DatabaseManager.Instance;
-        if (script == null)
-        {
-            GameObject obj = GameObject.FindWithTag("Admin");
-            if (obj != null) obj.TryGetComponent(out script);
-        }
-
-        if (script != null)
-            script.insertarPunutuacionMaxima(id, idJuego, nombre, puntos);
-        else
-            Debug.LogError("GestorVictoria: Admin no encontrado al insertar puntuación.");
+        nombrePerfil = DatabaseManager.Instance.GetNombrePerfil(0);
     }
-
-    public void InsertarPuntuacionServer(int id, int idJuego, string nombre, int puntos)
-    {
-        ServerDatabaseManager script = ServerDatabaseManager.Instance;
-        if (script == null)
-        {
-            GameObject objetoEncontrado = GameObject.FindWithTag("Admin");
-            if (objetoEncontrado != null) 
-            {
-                objetoEncontrado.TryGetComponent(out script);
-            }
-        }
-
-        if (script != null) 
-        {
-            script.InsertarPuntuacionMaximaServer(id, idJuego, nombre, puntos);
-        }
-        else 
-        {
-            Debug.LogError("ServerDatabaseManager no encontrado.");
-        }
-    }   
 }

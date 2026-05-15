@@ -9,9 +9,13 @@ public class ZonaMuerte : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (puntoReaparicion != null)
+            {
                 other.transform.position = puntoReaparicion.position;
+            }
             else
+            {
                 other.transform.position = Vector3.zero;
+            }
         }
     }
 
@@ -20,9 +24,14 @@ public class ZonaMuerte : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             if (puntoReaparicion != null)
+            {
                 collision.transform.position = puntoReaparicion.position;
+            }
             else
+            {
                 collision.transform.position = Vector3.zero;
+            }
+
         }
     }
 }

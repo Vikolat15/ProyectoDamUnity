@@ -30,6 +30,18 @@ public class Movimientojugador : Entidad
     public float jumpBufferTime = 0.1f;
     private float jumpBufferCounter;
 
+    [SerializeField] private int nivel;
+
+    [SerializeField] private Material flashMaterial;
+
+    private SpriteRenderer spriteRenderer;
+    private Material originalMaterial;
+    private Coroutine flashRoutine;
+
+    public bool recibiendoEmpuje = false;
+
+    [SerializeField] private AudioSource audioSource;
+
     public override int VidaMaxima {
         get { return vidaDB; } 
         protected set { base.VidaMaxima = value; }
@@ -37,12 +49,14 @@ public class Movimientojugador : Entidad
 
     private bool existeMenu = false;
 
-    void Start()
+    new void Start()
     {
         ConsultarPersonage(0,0);
         vida = VidaMaxima; 
         Rigidbody2D = GetComponent<Rigidbody2D>();
         Animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        originalMaterial = spriteRenderer.material;
     }
 
     void Update()
@@ -99,6 +113,8 @@ public class Movimientojugador : Entidad
     }
 
     void FixedUpdate(){
+
+        if (recibiendoEmpuje) return;
         Rigidbody2D.velocity = new Vector2((Velocidad * Horizontal), Rigidbody2D.velocity.y);
     }
 
@@ -171,15 +187,32 @@ public class Movimientojugador : Entidad
     {
         if (Time.time >= siguienteDanoPosible)
         {
+            audioSource.Play();
             siguienteDanoPosible = Time.time + tiempoInvulnerable;
             vida -= damage;
             updateHealthBar(vida);
-            
+
+            Flash();
+
             if (vida <= 0)
             {
                 Respawn();
             }
         }
+    }
+
+    public void Flash()
+    {
+        if (flashRoutine != null) StopCoroutine(flashRoutine);
+        flashRoutine = StartCoroutine(FlashRoutine());
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        spriteRenderer.material = flashMaterial;
+        yield return new WaitForSeconds(0.2f);
+        spriteRenderer.material = originalMaterial;
+        flashRoutine = null;
     }
 
     private void Respawn()
@@ -215,7 +248,6 @@ public class Movimientojugador : Entidad
             }
         } else
         {
-            Debug.LogError("Canvas no encontrado");
             return;
         }
     }
@@ -239,7 +271,6 @@ public class Movimientojugador : Entidad
         }
         else
         {
-            Debug.LogWarning("Admin no encontrado. Usando vida por defecto: 100.");
             vidaDB = 100;
         }
     }

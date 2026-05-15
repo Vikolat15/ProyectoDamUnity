@@ -3,44 +3,42 @@ using UnityEngine.SceneManagement;
 
 public class ControlTecladoTutorial : MonoBehaviour
 {
-    public GestorVictoria gestorVictoria;
+    [SerializeField] private GameObject objetoGestorVictoria; 
     
     void Start()
     {
-        if (gestorVictoria == null)
+        if (objetoGestorVictoria == null)
         {
-            gestorVictoria = FindObjectOfType<GestorVictoria>();
+            Debug.LogWarning("ControlTecladoTutorial: No se ha asignado el objeto del GestorVictoria.");
         }
     }
     
     void Update()
     {
-        bool victoriaActiva = false;
-        if (gestorVictoria != null && gestorVictoria.pantallaVictoria != null)
+        if (objetoGestorVictoria != null && objetoGestorVictoria.TryGetComponent<GestorVictoria>(out GestorVictoria script))
         {
-            victoriaActiva = gestorVictoria.pantallaVictoria.activeSelf;
-        }
-        if (victoriaActiva)
-        {
-            if (Input.GetKeyDown(KeyCode.R))
+            if (script.pantallaVictoria != null && script.pantallaVictoria.activeSelf)
             {
-                ReiniciarNivel();
-            }
-            
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                IrAlMenu();
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    ReiniciarNivel(script);
+                }
+                
+                if (Input.GetKeyDown(KeyCode.Q))
+                {
+                    IrAlMenu();
+                }
             }
         }
     }
     
-    void ReiniciarNivel()
+    void ReiniciarNivel(GestorVictoria script)
     {
         ResetearTiempo();
         
-        if (gestorVictoria != null)
+        if (script != null)
         {
-            gestorVictoria.ResetearTiempo();
+            script.ResetearTiempo();
         }
         
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

@@ -3,18 +3,20 @@ using System.Collections;
 
 public class GallinaMovimiento : Entidad
 {
+    [SerializeField] private GameObject player; 
+    [SerializeField] private GameObject objetoCanvas;
+
     [Header("Configuración de Movimiento")]
     public float velocidadPatrulla = 2f;
     public float velocidadPersecucion = 3.5f;
     public float tiempoPorDireccion = 2f;
     public float zonaMuertaHorizontal = 0.2f; 
 
-    [Header("Detección")]
     public float rangoVision = 10f;
-    public Animator animador;
-    private Rigidbody2D rb;
+    public Animator animador; 
+
+    private Rigidbody2D Rigidbody2D;
     private Animator animator;
-    private GameObject player;
     private float temporizador;
     private int direccion = 1;
     private bool tieneLineaDeVision = false;
@@ -23,37 +25,37 @@ public class GallinaMovimiento : Entidad
 
     [SerializeField] private Material flashMaterial;
     private SpriteRenderer spriteRenderer;
-    private Material originalMaterial;
-    private Coroutine flashRoutine;
+    private Material Material;
+    [SerializeField] private Coroutine flashRoutine;
+    [SerializeField] public AudioSource audioSource;
+
+    [SerializeField] private int nivel;
     public override int VidaMaxima
     {
-        get { return vidaDB; } 
+        get { return vidaDB; }
         protected set { base.VidaMaxima = value; }
     }
 
     public override int Dano
     {
-        get { return danoDB; } 
+        get { return danoDB; }
         protected set { base.Dano = value; }
     }
 
-    void Start()
+    new void Start()
     {
         ConsultarEnemigo(2, 0);
         vida = VidaMaxima; 
-        rb = GetComponent<Rigidbody2D>();
+        Rigidbody2D = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        player = GameObject.FindGameObjectWithTag("Player");
-
         spriteRenderer = GetComponent<SpriteRenderer>();
-            
-        originalMaterial = spriteRenderer.material;
+        Material = spriteRenderer.material;
     }
 
     void Update()
     {
-    if (animator != null)
-        animator.SetBool("running", direccion != 0);
+        if (animator != null)
+            animator.SetBool("running", direccion != 0);
 
         ActualizarDeteccion();
 
@@ -66,7 +68,7 @@ public class GallinaMovimiento : Entidad
                 temporizador = 0f;
             }
         }
-        else
+        else if (player != null)
         {
             float distanciaX = player.transform.position.x - transform.position.x;
 
@@ -86,43 +88,37 @@ public class GallinaMovimiento : Entidad
     void FixedUpdate()
     {
         float velocidadActual = tieneLineaDeVision ? velocidadPersecucion : velocidadPatrulla;
-        rb.velocity = new Vector2(direccion * velocidadActual, rb.velocity.y);
+        Rigidbody2D.velocity = new Vector2(direccion * velocidadActual, Rigidbody2D.velocity.y);
     }
 
-void ActualizarDeteccion()
-{
-    if (player == null) return;
-
-    Vector3 origen = new Vector3(transform.position.x, transform.position.y, 0);
-    
-    Vector3 destino = player.GetComponent<Collider2D>().bounds.center;
-    destino.z = 0; 
-
-    Vector2 direccionRayo = (destino - origen).normalized;
-
-    RaycastHit2D[] hits = Physics2D.RaycastAll(origen, direccionRayo, rangoVision);
-    
-    bool pudoVerAlJugador = false;
-
-    foreach (var hit in hits)
+    void ActualizarDeteccion()
     {
-        if (hit.collider.gameObject == gameObject) continue;
+        Vector3 origen = transform.position;
+        Vector3 destino = player.GetComponent<Collider2D>().bounds.center;
+        destino.z = 0; 
 
-        if (hit.collider.CompareTag("Player"))
+        Vector2 direccionRayo = (destino - origen).normalized;
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origen, direccionRayo, rangoVision);
+        
+        bool viendoJugador = false;
+
+        foreach (var hit in hits)
         {
-            pudoVerAlJugador = true;
-            break; 
+            if (hit.collider.CompareTag("Player"))
+            {
+                viendoJugador = true;
+                break; 
+            }
+
+            if (!hit.collider.isTrigger) 
+            {
+                viendoJugador = false;
+                break; 
+            }
         }
 
-        if (!hit.collider.isTrigger) 
-        {
-            pudoVerAlJugador = false;
-            break; 
-        }
+        tieneLineaDeVision = viendoJugador;
     }
-
-    tieneLineaDeVision = pudoVerAlJugador;
-}
 
     void Flip()
     {
@@ -141,64 +137,66 @@ void ActualizarDeteccion()
         }
     }
 
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.TryGetComponent<Movimientojugador>(out Movimientojugador playerComponent))
+        if (collision.gameObject.TryGetComponent<Movimientojugador>(out Movimientojugador player))
         {
-            playerComponent.recibirDano(danoDB);
+            Rigidbody2D Rigidbody2DPlayer = collision.gameObject.GetComponent<Rigidbody2D>();
+
+            bool empujado = Rigidbody2DPlayer.velocity.y < -0.1f && Rigidbody2DPlayer.transform.position.y > transform.position.y + 0.5f;
+
+                player.recibirDano(danoDB);
+                StartCoroutine(Empuje(player, Rigidbody2DPlayer));
+            
         }
+    }
+
+    private IEnumerator Empuje(Movimientojugador player, Rigidbody2D Rigidbody2D)
+    {
+        player.recibiendoEmpuje = true;
+
+        float Dirrecion = (Rigidbody2D.transform.position.x > transform.position.x) ? 1f : -1f;
+
+        float fuerzaHorizontal = 8f;
+        float fuerzaVertical = 12f;    
+
+        Rigidbody2D.velocity = new Vector2(Dirrecion * fuerzaHorizontal, fuerzaVertical);
+
+        yield return new WaitForSeconds(0.2f);
+
+        Rigidbody2D.velocity = new Vector2(Rigidbody2D.velocity.x * 0.5f, Rigidbody2D.velocity.y);
+
+        player.recibiendoEmpuje = false;
     }
 
     public void ConsultarEnemigo(int id, int idNivel)
     {
-        DatabaseManager script = DatabaseManager.Instance;
-        if (script == null)
+        if (DatabaseManager.Instance != null)
         {
-            GameObject obj = GameObject.FindWithTag("Admin");
-            if (obj != null) obj.TryGetComponent(out script);
-        }
-
-        if (script != null)
-        {
-            vidaDB = script.GetSaludEnemigo(id, idNivel);
-            danoDB = script.GetDanoEnemigo(id, idNivel);
-            if (vidaDB <= 0) vidaDB = 200;
-            if (danoDB <= 0) danoDB = 25;
+            vidaDB = DatabaseManager.Instance.GetSaludEnemigo(id, idNivel);
+            danoDB = DatabaseManager.Instance.GetDanoEnemigo(id, idNivel);
         }
         else
         {
-            Debug.LogWarning("GallinaMovimiento: Admin no encontrado. Usando valores por defecto.");
             vidaDB = 200;
-            danoDB = 25;
+            danoDB = 50;
         }
     }
 
     protected override void Morir()
     {
-
         updatePuntuacion(50);
         Destroy(gameObject, 0.2f);
     }
 
     public void updatePuntuacion(int pt)
     {
-        GameObject objetoEncontrado = GameObject.FindWithTag("Canvas");
-    
-        if (objetoEncontrado != null) 
-        {
-            if (objetoEncontrado.TryGetComponent<Puntuacion>(out Puntuacion script)) {
+            if (objetoCanvas.TryGetComponent<Puntuacion>(out Puntuacion script)) {
                 script.changePuntuacion(pt);
             }
-        } else
-        {
-            Debug.LogError("Canvas no encontrado");
-            return;
-        }
     }
 
-
-        public void reducirVelocidad(float vel)
+    public void reducirVelocidad(float vel)
     {
         velocidadPersecucion = vel * 2;
         velocidadPatrulla = vel;
@@ -206,22 +204,15 @@ void ActualizarDeteccion()
 
     public void Flash()
     {
-        if (flashRoutine != null)
-        {
-            StopCoroutine(flashRoutine);
-        }
-
+        if (flashRoutine != null) StopCoroutine(flashRoutine);
         flashRoutine = StartCoroutine(FlashRoutine());
     }
 
     private IEnumerator FlashRoutine()
     {
         spriteRenderer.material = flashMaterial;
-
         yield return new WaitForSeconds(0.2f);
-
-        spriteRenderer.material = originalMaterial;
-
+        spriteRenderer.material = Material;
         flashRoutine = null;
     }
 }

@@ -1,93 +1,169 @@
-using MySql.Data.MySqlClient; 
+using MySql.Data.MySqlClient;
 using System;
 using UnityEngine;
 
 public class ServerDatabaseManager : MonoBehaviour
 {
-    // Asegúrate de que la base de datos 'LogFall' ya esté creada en phpMyAdmin
-    private string connectionString = "Server=localhost;Port=3306;Database=LogFall;User ID=root;Password=;Pooling=false;";
-
+    private string connectionString;
+    private bool conexionIniciada = false;
     public static ServerDatabaseManager Instance { get; private set; }
-
-
     void Awake()
+    {
+        if (Instance == null)
         {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject); // Opcional: para que no muera al cambiar de escena
-            }
-            else
-            {
-                Destroy(gameObject); // Evita que haya dos gestores de servidor a la vez
-                return;
-            }
+            Instance = this;
+            DontDestroyOnLoad(gameObject); 
         }
+        else
+        {
+            Destroy(gameObject); 
+            return;
+        }
+    }
+
     void Start()
     {
+
+    }
+
+    public bool IniciarConexion(string user, string pass)
+    {
+        connectionString = $"Server=localhost;Port=3306;Database=LogFall;User ID={user};Password={pass};Pooling=false;";
+
+        if (ProbarConexion())
+        {
+            conexionIniciada = true;
+
             CrearTablaPuntuacionesServer();
+            AnadirNivelesServer();
+
+            return true;
+        }
+
+        conexionIniciada = false;
+        return false;
     }
 
     public bool ProbarConexion()
     {
         using (var connection = new MySqlConnection(connectionString))
         {
-            try {
+            try
+            {
                 connection.Open();
-                Debug.Log("Conexión exitosa a MySQL");
+                Debug.Log("Conectado a MySQL");
                 return true;
-            } catch (Exception e) {
-                Debug.LogError("Error conectando al servidor: " + e.Message);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
                 return false;
             }
         }
     }
 
-    // Crea la tabla si no existe
-    public void CrearTablaPuntuacionesServer()
+    private bool HayConexion()
     {
+        if (!conexionIniciada)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public void AnadirNivelesServer()
+    {
+        if (!HayConexion())
+            return;
+
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
+
             using (var command = new MySqlCommand())
             {
                 command.Connection = connection;
-                // En MySQL usamos INT y PRIMARY KEY para el ID
-                command.CommandText = @"CREATE TABLE IF NOT EXISTS Puntuaciones (
-                    id_nivel INT PRIMARY KEY,
-                    id_juego INT,
-                    nombre_nivel VARCHAR(100),
-                    puntuacion_maxima INT DEFAULT 0
-                );";
+
+                try
+                {
+                    command.CommandText = @"
+                        INSERT IGNORE INTO TablaNivel (id, nombre) VALUES (0, 'Tutorial');
+                        INSERT IGNORE INTO TablaNivel (id, nombre) VALUES (1, 'Nivel1');
+                        INSERT IGNORE INTO TablaNivel (id, nombre) VALUES (2, 'Nivel2');
+                        INSERT IGNORE INTO TablaNivel (id, nombre) VALUES (3, 'Nivel3');
+                    ";
+
+                    command.ExecuteNonQuery();
+
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Error insertando niveles: " + e.Message);
+                }
+            }
+        }
+    }
+
+    public void CrearTablaPuntuacionesServer()
+    {
+        if (!HayConexion())
+            return;
+
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            connection.Open();
+
+            using (var command = new MySqlCommand())
+            {
+                command.Connection = connection;
+
+                command.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS TablaNivel (
+                        id INT PRIMARY KEY,
+                        nombre VARCHAR(100)
+                    );
+
+                    CREATE TABLE IF NOT EXISTS Tablajugador (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        nombreJugador VARCHAR(100),
+                        idNivel INT,
+                        puntuacionMaxima INT DEFAULT 0,
+                        UNIQUE KEY (nombreJugador, idNivel),
+                        FOREIGN KEY (idNivel) REFERENCES TablaNivel(id)
+                    );";
+
                 command.ExecuteNonQuery();
 
             }
         }
     }
 
-    // Inserta o actualiza la puntuación solo si es mayor a la actual
-    public void InsertarPuntuacionMaximaServer(int idNivel, int idJuego, string nombre, int puntos)
+    public void InsertarPuntuacionMaximaServer(string nombreJugador, int idNivel, int puntos)
     {
+        if (!HayConexion())
+            return;
+
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
+
             using (var command = new MySqlCommand())
             {
                 command.Connection = connection;
 
-                // Usamos la sintaxis ON DUPLICATE KEY UPDATE de MySQL
-                // Esto intenta insertar, y si el id_nivel ya existe, ejecuta el UPDATE
-                command.CommandText = $@"
-                    INSERT INTO Puntuaciones (id_nivel, id_juego, nombre_nivel, puntuacion_maxima) 
-                    VALUES ({idNivel}, {idJuego}, '{nombre}', {puntos})
+                command.CommandText = @"
+                    INSERT INTO Tablajugador (nombreJugador, idNivel, puntuacionMaxima) 
+                    VALUES (@nombre, @idNivel, @puntos)
                     ON DUPLICATE KEY UPDATE 
-                    puntuacion_maxima = IF({puntos} > puntuacion_maxima, {puntos}, puntuacion_maxima);";
-                
-                int result = command.ExecuteNonQuery();
-                
-                if (result == 1) Debug.Log("Nueva puntuación creada.");
-                else if (result == 2) Debug.Log("Puntuación actualizada (si era mayor).");
-                else Debug.Log("No hubo cambios en la puntuación.");
+                    puntuacionMaxima = IF(@puntos > puntuacionMaxima, @puntos, puntuacionMaxima);";
+
+                command.Parameters.AddWithValue("@nombre", nombreJugador);
+                command.Parameters.AddWithValue("@idNivel", idNivel);
+                command.Parameters.AddWithValue("@puntos", puntos);
+
+                command.ExecuteNonQuery();
+
             }
         }
     }
